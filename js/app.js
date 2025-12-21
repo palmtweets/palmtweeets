@@ -11,44 +11,51 @@ window.auth = auth;
 window.feed = feed;
 window.admin = admin;
 
-// Variable ya kuhifadhi install prompt (kama ipo)
+// Hifadhi prompt ya install
 let deferredPrompt; 
-
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  console.log("Install prompt imepatikana");
+  console.log("Install iko tayari");
 });
 
 window.onload = async () => {
     
-    // 1. AUTO-ENTRY: Kama yuko kwenye App, ingia moja kwa moja
+    // 1. CHECK YA HARAKA: Kama tuko ndani ya App, onyesha Intro
     const isApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     if (isApp) {
-        utils.navTo('view-intro');
+        document.getElementById('view-gatekeeper').classList.remove('active');
+        document.getElementById('view-intro').classList.add('active');
     } else {
         utils.detectDevice();
     }
     
     utils.initPWA();
     
-    // 2. LOGIC MPYA YA KITUFE (HAKUNA MASHARTI)
+    // 2. KITUFE CHA KUBADILISHA UKURASA "KIENYEJI" (MANUAL)
+    // Hii haitegemei 'utils' wala logic ngumu. Inabadilisha CSS moja kwa moja.
     const installBtn = document.getElementById('pwa-install-btn');
+    
     if(installBtn) {
-        // Tunatumia 'onclick' badala ya EventListener ili kuhakikisha inafanya kazi
         installBtn.onclick = () => {
-            
-            // HATUA YA KWANZA: INGIA NDANI HARAKA!
-            // Hatusubiri ku-install, tunaingia kwanza.
-            utils.navTo('view-intro');
+            console.log("Button imebonyezwa - Tunalazimisha kuingia");
 
-            // HATUA YA PILI: JARIBU KU-INSTALL (KIMYA KIMYA)
-            // Hii itatokea ikiwa tu notification ipo tayari
+            // HATUA A: Ficha Gatekeeper kwa nguvu
+            const gatekeeper = document.getElementById('view-gatekeeper');
+            gatekeeper.style.display = 'none'; // Futa kabisa
+            gatekeeper.classList.remove('active');
+
+            // HATUA B: Washa Intro kwa nguvu
+            const intro = document.getElementById('view-intro');
+            intro.style.display = 'flex'; // Washa kabisa
+            intro.classList.add('active');
+
+            // HATUA C: Jaribu ku-install (Baada ya kuonyesha page mpya)
             if (deferredPrompt) {
                 setTimeout(() => {
                     deferredPrompt.prompt();
                     deferredPrompt = null;
-                }, 1000); // Tunasubiri sekunde 1 akiwa ndani ndio tumuulize
+                }, 500); // Subiri nusu sekunde tukiwa tumeshafika page mpya
             }
         };
     }
