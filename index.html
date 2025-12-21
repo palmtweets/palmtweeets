@@ -3,18 +3,54 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>PalmTweets</title>
-  
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#ffffff">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>PalmTweets | Official Gateway</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  
+  <style>
+    /* --- ORIGINAL CSS (QUIET LUXURY) --- */
+    :root{--bg-body:#ffffff;--text-main:#0f172a;--accent-gold:#D4AF37;--accent-black:#000000;--muted:#64748b}
+    body{font-family:'Inter',sans-serif;background:var(--bg-body);color:var(--text-main);-webkit-tap-highlight-color:transparent;margin:0}
+    
+    .brand-logo { display: flex; align-items: center; justify-content: center; line-height: 1; }
+    .brand-serif { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 500; letter-spacing: -0.03em; }
+    .brand-sans { font-family: 'Inter', sans-serif; font-weight: 900; letter-spacing: -0.05em; margin-left: -0.15em; }
+    
+    .fade-in{animation:fadeIn .6s cubic-bezier(.16,1,.3,1) forwards;opacity:0;transform:translateY(10px)}@keyframes fadeIn{to{opacity:1;transform:translateY(0)}}
+    .slide-up{animation:slideUp .3s ease-out forwards;transform:translateY(100%)}@keyframes slideUp{to{transform:translateY(0)}}
+    .screen{display:none;min-height:100vh;flex-direction:column}.screen.active{display:flex}.app-container{max-width:600px;margin:0 auto;width:100%;position:relative}
+    
+    .input-clean{width:100%;padding:16px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;font-size:15px;outline:none;transition:all .2s; color:black;}
+    .input-clean:focus{background:white;border-color:var(--accent-black);box-shadow:0 4px 12px rgba(0,0,0,.05)}
+    .btn-black{background:var(--accent-black);color:white;padding:16px;border-radius:12px;font-weight:600;width:100%;letter-spacing:.5px;box-shadow:0 4px 20px rgba(0,0,0,.1); cursor:pointer;}.btn-black:active{transform:scale(.98)}
+    .btn-outline{background:transparent;border:1px solid #E2E8F0;color:var(--text-main);padding:14px;border-radius:12px;font-weight:600;width:100%; cursor:pointer;}
+    
+    .chip{padding:8px 16px;border-radius:100px;font-size:13px;font-weight:600;background:#F1F5F9;color:var(--muted);cursor:pointer;border:1px solid transparent;transition:all .2s}.chip.active{background:var(--accent-black);color:white;border-color:black}
+    
+    .card-feed{padding:20px;border-bottom:1px solid #F1F5F9;position:relative}
+    .badge-gold{color:var(--accent-gold)}.badge-blue{color:#2563EB}.badge-green{color:#16A34A}.badge-black{color:#000}.badge-purple{color:#7C3AED}
+    .stat-card{background:white;padding:16px;border-radius:12px;border:1px solid #f3f4f6;box-shadow:0 2px 10px rgba(0,0,0,.03)}
+    .upload-btn{border:1px dashed #d1d5db;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-weight:700;cursor:pointer;background:#f9fafb;transition:all .2s}.upload-btn:hover{background:#f3f4f6;border-color:#000;color:#000}
+    .urgency-btn{padding:10px;border-radius:8px;font-weight:600;background:#F8FAFC;border:1px solid #E2E8F0;color:var(--muted);cursor:pointer;transition:all .2s}.urgency-btn.active{background:var(--accent-black);color:white;border-color:black}
+    
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}.overlay.show{display:flex}
+    .sheet-bottom{background:white;width:100%;max-width:600px;border-top-left-radius:24px;border-top-right-radius:24px;max-height:85vh;display:flex;flex-direction:column}
+    
+    .date-divider{display:flex;align-items:center;justify-content:center;margin:24px 0;position:relative}.date-divider::before{content:'';position:absolute;left:20px;right:20px;height:1px;background:#F1F5F9;z-index:0}.date-divider span{background:#FAFAFA;padding:4px 16px;z-index:1;color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-radius:20px}
+    #admin-dash-avatar img{width:100%;height:100%;object-fit:cover}
+    
+    .system-gold{background:linear-gradient(180deg,#fffaf0,#fff7e6);border:1px solid rgba(212,175,55,.18);padding:16px;border-radius:12px;margin-bottom:12px}
+    .aspect-portrait{aspect-ratio:4/5;object-fit:cover}.aspect-landscape{aspect-ratio:16/9;object-fit:cover}
+    .hidden-by-default{display:none}
+    .carousel-wrap{position:relative}
+    .carousel-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);color:white;width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+    .carousel-left{left:8px}.carousel-right{right:8px}
+    .carousel-indicator{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.6);color:white;padding:4px 8px;border-radius:999px;font-size:12px}
+    .notif-banner{background:#FFFBEB;border:1px solid #FEF3C7;padding:12px;border-radius:8px;margin-bottom:12px}
+  </style>
 </head>
 <body>
 
@@ -37,29 +73,29 @@
         </p>
       </div>
       <div class="space-y-4 fade-in" style="animation-delay:0.2s">
-        <button onclick="navTo('view-student-auth')" class="btn-black flex justify-between items-center"><span>Student Access</span> <i class="ph-bold ph-arrow-right"></i></button>
-        <button onclick="navTo('view-admin-intro')" class="btn-outline text-sm">Partner / Authority Access</button>
+        <button onclick="window.navTo('view-student-auth')" class="btn-black flex justify-between items-center"><span>Student Access</span> <i class="ph-bold ph-arrow-right"></i></button>
+        <button onclick="window.navTo('view-admin-intro')" class="btn-outline text-sm">Partner / Authority Access</button>
       </div>
     </div>
   </div>
 
   <div id="view-student-auth" class="screen p-6 bg-white">
     <div class="app-container">
-      <button class="text-2xl mb-4" onclick="navTo('view-intro')"><i class="ph ph-arrow-left"></i></button>
+      <button class="text-2xl mb-4" onclick="window.navTo('view-intro')"><i class="ph ph-arrow-left"></i></button>
       <h2 class="text-3xl font-bold mb-2 font-sans tracking-tight">Student Access</h2>
       <p class="text-sm text-gray-500 mb-6">Create account or login using email and password.</p>
       <div class="space-y-3">
-        <button class="btn-black w-full" onclick="openStudentSignup()">Create Account</button>
-        <button class="btn-outline w-full" onclick="navTo('view-student-login')">Login</button>
+        <button class="btn-black w-full" onclick="window.openStudentSignup()">Create Account</button>
+        <button class="btn-outline w-full" onclick="window.navTo('view-student-login')">Login</button>
       </div>
     </div>
   </div>
 
   <div id="view-student-login" class="screen p-6 bg-white">
     <div class="app-container">
-      <button class="text-2xl mb-4" onclick="navTo('view-student-auth')"><i class="ph ph-arrow-left"></i></button>
+      <button class="text-2xl mb-4" onclick="window.navTo('view-student-auth')"><i class="ph ph-arrow-left"></i></button>
       <h3 class="text-2xl font-bold mb-4">Student Login</h3>
-      <form onsubmit="handleStudentLogin(event)" class="space-y-4">
+      <form onsubmit="window.handleStudentLogin(event)" class="space-y-4">
         <input id="login-email" class="input-clean" placeholder="Email" type="email" required />
         <input id="login-password" class="input-clean" placeholder="Password" type="password" required />
         <button class="btn-black" type="submit">Login</button>
@@ -69,12 +105,12 @@
 
   <div id="view-signup" class="screen bg-white p-6">
     <div class="app-container fade-in">
-      <div class="h-12 mb-4"><button onclick="navTo('view-intro')"><i class="ph ph-arrow-left text-xl"></i></button></div>
+      <div class="h-12 mb-4"><button onclick="window.navTo('view-intro')"><i class="ph ph-arrow-left text-xl"></i></button></div>
       <h2 class="text-3xl font-bold mb-2 tracking-tight">My Profile</h2>
       <p class="text-sm text-gray-500 mb-6 leading-relaxed">
-        To ensure a noise-free experience, we require accurate data protected by strict privacy standards.
+        To ensure a noise-free experience, we require accurate data.
       </p>
-      <form id="student-form" onsubmit="finishStudentSignup(event)" class="space-y-5">
+      <form id="student-form" onsubmit="window.finishStudentSignup(event)" class="space-y-5">
         <div>
           <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Email</label>
           <input id="input-email" type="email" class="input-clean" placeholder="you@example.com" required />
@@ -85,16 +121,22 @@
         </div>
         <div class="relative">
           <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Campus</label>
-          <input id="input-uni" class="input-clean" placeholder="Search University" onkeyup="filterUniList(this.value, 'uni-dropdown-student')" onfocus="showUniList('uni-dropdown-student')" autocomplete="off" />
+          <input id="input-uni" class="input-clean" placeholder="Search University" onkeyup="window.filterUniList(this.value, 'uni-dropdown-student')" onfocus="window.showUniList('uni-dropdown-student')" autocomplete="off" />
           <div id="uni-dropdown-student" class="hidden absolute top-full left-0 right-0 bg-white shadow-xl border border-gray-100 rounded-xl mt-2 z-50 max-h-48 overflow-y-auto"></div>
         </div>
         <div>
           <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Full Name</label>
           <input id="input-name" class="input-clean" placeholder="Your Official Name" required />
         </div>
+        
         <div>
             <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Course</label>
             <input id="input-course" class="input-clean" placeholder="e.g. Computer Science" required />
+        </div>
+
+        <div>
+           <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Birth Year</label>
+           <input type="number" id="input-birth-year" class="input-clean" placeholder="e.g. 2002" min="1980" max="2010" required />
         </div>
         <div>
           <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Year of Study</label>
@@ -107,14 +149,13 @@
             <option value="Grad">Graduate</option>
           </select>
         </div>
-        
         <div>
           <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 block">Interests & Preferences</label>
           <div class="flex flex-wrap gap-2" id="interest-chips"></div>
         </div>
         <div class="flex gap-2">
           <button id="student-submit-btn" type="submit" class="btn-black mt-4">Enter Platform <i class="ph-bold ph-caret-right ml-2"></i></button>
-          <button id="student-logout-btn" type="button" class="btn-outline mt-4 hidden-by-default" onclick="confirmLogout()">Logout</button>
+          <button id="student-logout-btn" type="button" class="btn-outline mt-4 hidden-by-default" onclick="window.confirmLogout()">Logout</button>
         </div>
       </form>
     </div>
@@ -127,15 +168,15 @@
             <span class="brand-serif">Palm</span><span class="brand-sans">tweets</span>
         </div>
         <div class="flex gap-4">
-          <button id="bell-btn" class="relative" onclick="openUrgentPopup()"><i class="ph ph-bell text-xl"></i><span id="bell-dot" class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span></button>
-          <div id="me-btn" class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs cursor-pointer" onclick="openProfileMenu()">Me</div>
+          <button id="bell-btn" class="relative" onclick="window.openUrgentPopup()"><i class="ph ph-bell text-xl"></i><span id="bell-dot" class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span></button>
+          <div id="me-btn" class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs cursor-pointer" onclick="window.openProfileMenu()">Me</div>
         </div>
       </div>
       <div class="app-container px-4 pb-3 overflow-x-auto whitespace-nowrap no-scrollbar flex gap-2">
-        <button onclick="filterFeed('all', this)" class="chip active">All Updates</button>
-        <button onclick="filterFeed('official', this)" class="chip">Official Notices</button>
-        <button onclick="filterFeed('opportunity', this)" class="chip">Opportunities</button>
-        <button onclick="filterFeed('event', this)" class="chip">Events</button>
+        <button onclick="window.filterFeed('all', this)" class="chip active">All Updates</button>
+        <button onclick="window.filterFeed('official', this)" class="chip">Official Notices</button>
+        <button onclick="window.filterFeed('opportunity', this)" class="chip">Opportunities</button>
+        <button onclick="window.filterFeed('event', this)" class="chip">Events</button>
       </div>
     </header>
     <main class="app-container bg-[#FAFAFA] min-h-screen">
@@ -154,21 +195,33 @@
         </p>
       </div>
       <div class="space-y-4">
-        <button class="btn-black w-full" onclick="navTo('view-admin-signup')">Create Official Account</button>
-        <button class="btn-outline w-full" onclick="navTo('view-admin-login')">Login</button>
-        <button class="btn-outline w-full mt-2" onclick="navTo('view-intro')">Back to Home</button>
+        <button class="btn-black w-full" onclick="window.navTo('view-admin-signup')">Create Official Account</button>
+        <button class="btn-outline w-full" onclick="window.navTo('view-admin-login')">Login</button>
+        <button class="btn-outline w-full mt-2" onclick="window.navTo('view-intro')">Back to Home</button>
       </div>
+    </div>
+  </div>
+
+  <div id="view-admin-login" class="screen p-6 bg-white">
+    <div class="app-container mx-auto">
+      <button class="text-2xl mb-4" onclick="window.navTo('view-admin-intro')"><i class="ph ph-arrow-left"></i></button>
+      <h3 class="text-2xl font-bold mb-4">Organization Login</h3>
+      <form onsubmit="window.handleAdminLogin(event)" class="space-y-4">
+        <input id="admin-login-email" class="input-clean" placeholder="Email" type="email" required />
+        <input id="admin-login-password" class="input-clean" placeholder="Password" type="password" required />
+        <button class="btn-black w-full" type="submit">Login</button>
+      </form>
     </div>
   </div>
 
   <div id="view-admin-signup" class="screen p-6 bg-white">
     <div class="app-container mx-auto">
-      <button class="text-2xl mb-4" onclick="navTo('view-admin-intro')"><i class="ph ph-arrow-left"></i></button>
+      <button class="text-2xl mb-4" onclick="window.navTo('view-admin-intro')"><i class="ph ph-arrow-left"></i></button>
       <h3 class="text-2xl font-bold mb-6">Organization Details</h3>
-      <form onsubmit="handleAdminSignup(event)" class="space-y-4">
+      <form onsubmit="window.handleAdminSignup(event)" class="space-y-4">
         <div>
           <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Account Type</label>
-          <select id="admin-type" class="input-clean mt-1 bg-white" onchange="toggleAdminUniField()" required>
+          <select id="admin-type" class="input-clean mt-1 bg-white" onchange="window.toggleAdminUniField()" required>
             <option value="" disabled selected>Select Type</option>
             <option value="ministry">Ministry/Student Government</option>
             <option value="official">University Office</option>
@@ -182,7 +235,7 @@
         </div>
         <div id="admin-uni-field" class="relative">
           <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">University</label>
-          <input id="admin-uni-input" class="input-clean" placeholder="Search University" onkeyup="filterUniList(this.value, 'uni-dropdown-admin')" onfocus="showUniList('uni-dropdown-admin')" autocomplete="off" />
+          <input id="admin-uni-input" class="input-clean" placeholder="Search University" onkeyup="window.filterUniList(this.value, 'uni-dropdown-admin')" onfocus="window.showUniList('uni-dropdown-admin')" autocomplete="off" />
           <div id="uni-dropdown-admin" class="hidden absolute top-full left-0 right-0 bg-white shadow-xl border border-gray-100 rounded-xl mt-2 z-50 max-h-48 overflow-y-auto"></div>
         </div>
         <div>
@@ -198,18 +251,6 @@
     </div>
   </div>
 
-  <div id="view-admin-login" class="screen p-6 bg-white">
-    <div class="app-container mx-auto">
-      <button class="text-2xl mb-4" onclick="navTo('view-admin-intro')"><i class="ph ph-arrow-left"></i></button>
-      <h3 class="text-2xl font-bold mb-4">Organization Login</h3>
-      <form onsubmit="handleAdminLogin(event)" class="space-y-4">
-        <input id="admin-login-email" class="input-clean" placeholder="Email" type="email" required />
-        <input id="admin-login-password" class="input-clean" placeholder="Password" type="password" required />
-        <button class="btn-black w-full" type="submit">Login</button>
-      </form>
-    </div>
-  </div>
-
   <div id="view-admin-dash" class="screen bg-[#FAFAFA]">
     <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
       <div class="app-container mx-auto flex items-center justify-between h-16 px-4">
@@ -217,34 +258,300 @@
           <div id="dash-avatar" class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-bold overflow-hidden"><img id="dash-avatar-img" alt="" style="display:none" /><span id="dash-avatar-letter"></span></div>
           <div><div id="dash-name" class="font-bold text-sm">Org Name</div><div id="dash-verified" class="text-xs text-green-600 flex items-center gap-1"><i class="ph-fill ph-seal-check"></i> Verified Official</div></div>
         </div>
-        <div class="flex gap-2"><button onclick="confirmLogout()" class="p-2 bg-gray-50 rounded-full text-red-500 hover:bg-red-50"><i class="ph ph-sign-out"></i></button></div>
+        <div class="flex gap-2"><button onclick="window.openAdminEdit()" class="p-2 bg-gray-50 rounded-full hover:bg-gray-100"><i class="ph ph-gear"></i></button><button onclick="window.confirmLogout()" class="p-2 bg-gray-50 rounded-full text-red-500 hover:bg-red-50"><i class="ph ph-sign-out"></i></button></div>
       </div>
     </header>
     <main class="app-container mx-auto p-4 pb-24">
-      <div class="bg-black text-white rounded-2xl p-5 mt-6 flex justify-between items-center cursor-pointer shadow-lg active:scale-95 transition-transform" onclick="initNewPost()"><div><div class="font-bold text-lg">Create Update</div><div class="text-gray-400 text-sm">Post to student feeds</div></div><div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center"><i class="ph-bold ph-plus text-xl"></i></div></div>
+      <div><h4 class="text-xs font-bold uppercase text-gray-400 tracking-wider">Performance (30 days)</h4><div class="grid grid-cols-2 gap-3 mt-3"><div class="stat-card"><div class="text-xs text-gray-500">Students Reached</div><div class="text-2xl font-extrabold mt-1">12.5k</div></div><div class="stat-card"><div class="text-xs text-gray-500">Avg Engagement</div><div class="text-2xl font-extrabold mt-1">8.2%</div></div></div></div>
+      <div class="bg-black text-white rounded-2xl p-5 mt-6 flex justify-between items-center cursor-pointer shadow-lg active:scale-95 transition-transform" onclick="window.initNewPost()"><div><div class="font-bold text-lg">Create Update</div><div class="text-gray-400 text-sm">Post to student feeds</div></div><div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center"><i class="ph-bold ph-plus text-xl"></i></div></div>
       <div class="mt-8"><h4 class="text-xs font-bold uppercase text-gray-400 tracking-wider">Recent History</h4><div id="admin-posts-list" class="mt-3 space-y-3"></div></div>
     </main>
   </div>
 
   <div id="view-admin-post" class="screen p-4 bg-white">
     <div class="app-container mx-auto">
-      <header class="flex items-center justify-between mb-4"><button onclick="navTo('view-admin-dash')" class="text-2xl"><i class="ph ph-x"></i></button><h3 class="font-bold" id="post-screen-title">New Update</h3><div class="flex gap-2"><button class="bg-black text-white px-4 py-2 rounded-full text-sm font-bold" onclick="handlePublishPost()">Post</button></div></header>
-      <textarea id="post-content" class="input-clean w-full h-32 resize-none" placeholder="What's happening?"></textarea>
-      
-      <div class="mt-4 space-y-4">
-        <div><label class="text-xs font-bold uppercase text-gray-400 block mb-1">Category</label><select id="post-category" class="input-clean py-2 bg-white"><option value="official">Official Notice</option><option value="opportunity">Opportunity</option><option value="event">Event</option></select></div>
-        <div><label class="text-xs font-bold uppercase text-gray-400 block mb-2">Priority Level</label><div class="grid grid-cols-3 gap-2"><button type="button" class="urgency-btn active text-sm" onclick="setUrgency(this,'INFO')">Info</button><button type="button" class="urgency-btn text-sm" onclick="setUrgency(this,'IMPORTANT')">Important</button><button type="button" class="urgency-btn text-sm" onclick="setUrgency(this,'URGENT')">Urgent</button></div><input id="post-tag" type="hidden" value="INFO" /></div>
-        <div id="post-uni-target-container" class="hidden">
-           <label class="text-xs font-bold uppercase text-gray-400 block mb-1">Target</label>
-           <select id="target-uni-select" class="input-clean py-2 text-sm bg-white"><option value="All">All Universities</option></select>
+      <header class="flex items-center justify-between mb-4"><button onclick="window.navTo('view-admin-dash')" class="text-2xl"><i class="ph ph-x"></i></button><h3 class="font-bold" id="post-screen-title">New Update</h3><div class="flex gap-2"><button class="bg-black text-white px-4 py-2 rounded-full text-sm font-bold" onclick="window.handlePublishPost()">Post</button></div></header>
+      <div>
+        <label class="text-xs font-bold uppercase text-gray-400 mb-1 block">Post Type</label>
+        <div class="flex gap-2 mb-3">
+          <label class="chip"><input id="post-type-normal" type="radio" name="postType" value="normal" checked style="display:none"> Normal</label>
         </div>
+      </div>
+      <textarea id="post-content" class="input-clean w-full h-32 resize-none" placeholder="What's happening?"></textarea>
+      <div id="media-preview" class="hidden mt-3 border border-gray-100 rounded-xl p-2"><div id="media-list" class="grid grid-cols-2 gap-2 mb-2"></div></div>
+      <div id="file-preview" class="hidden mt-3 bg-gray-50 border border-gray-200 p-3 rounded-xl flex flex-col gap-2"><div id="file-list" class="flex flex-col gap-1"></div></div>
+      <div class="mt-4 pb-4 border-b border-gray-100"><input id="file-input" type="file" class="hidden" onchange="window.handleFileSelect(this)" multiple /><div class="flex gap-3"><button class="upload-btn flex-1 text-sm" onclick="window.triggerUpload('image')"><i class="ph-fill ph-image text-lg"></i> Add Photos</button><button class="upload-btn flex-1 text-sm" onclick="window.triggerUpload('pdf')"><i class="ph-fill ph-file-pdf text-lg"></i> Add Documents</button></div></div>
+      <div class="mt-4 space-y-4"><div><label class="text-xs font-bold uppercase text-gray-400 block mb-1">Category</label><select id="post-category" class="input-clean py-2 bg-white"><option value="official">Official Notice</option><option value="opportunity">Opportunity</option><option value="event">Event</option></select></div>
+        <div><label class="text-xs font-bold uppercase text-gray-400 block mb-2">Priority Level</label><div class="grid grid-cols-3 gap-2"><button type="button" class="urgency-btn active text-sm" onclick="window.setUrgency(this,'INFO')">Info</button><button type="button" class="urgency-btn text-sm" onclick="window.setUrgency(this,'IMPORTANT')">Important</button><button type="button" class="urgency-btn text-sm" onclick="window.setUrgency(this,'URGENT')">Urgent</button></div><input id="post-tag" type="hidden" value="INFO" /></div>
+        <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 block mb-1">Target Audience (Filters)</label><div id="post-uni-target-container" class="mb-2 hidden"><select id="target-uni-select" class="input-clean py-2 text-sm bg-white mb-2"><option value="All">All Universities</option></select></div><div class="space-y-2"><div class="flex gap-2"><select id="target-year-select" class="input-clean py-2 text-sm bg-white"><option value="All">All Years</option><option value="1">Year 1</option><option value="2">Year 2</option><option value="3">Year 3</option><option value="4+">Year 4+</option><option value="Grad">Graduate</option></select>
+          <select id="target-interest" class="input-clean py-2 text-sm bg-white" multiple size="4" title="Select multiple interests (Hold Ctrl/Cmd or tap)"></select></div><input id="target-course" class="input-clean py-2 text-sm" placeholder="Target Course (e.g. Law) - Optional" /><div class="flex gap-2"><input id="target-age-min" type="number" class="input-clean py-2 text-sm" placeholder="Min Age (Year)" /><input id="target-age-max" type="number" class="input-clean py-2 text-sm" placeholder="Max Age (Year)" /></div></div></div>
       </div>
     </div>
   </div>
 
-  <div id="modal-comments" class="overlay items-end" onclick="closeComments()"><div class="sheet-bottom animate-slide-up" onclick="event.stopPropagation()"><div class="p-4 border-b border-gray-100 flex justify-between items-center"><div class="font-bold text-sm">Comments <span id="comment-header-count" class="text-gray-400 font-normal">(0)</span></div><button onclick="closeComments()"><i class="ph ph-x text-xl"></i></button></div><div id="comments-list" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"></div><div class="p-3 border-t border-gray-100 bg-white flex gap-2 items-center pb-6"><input id="comment-input" class="flex-1 bg-gray-100 rounded-full px-4 py-3 text-sm outline-none" placeholder="Add a comment..." /><button id="comment-post-btn" class="text-black font-bold text-sm p-2" onclick="postComment()">Post</button></div></div></div>
-  <div id="modal-urgent" class="overlay" onclick="closeUrgentPopup()"><div class="bg-white rounded-t-2xl p-6 w-full max-w-md animate-slide-up" onclick="event.stopPropagation()"><div class="flex items-center justify-between mb-3"><h3 class="font-bold text-lg">Urgent Updates</h3><button onclick="closeUrgentPopup()" class="text-gray-400"><i class="ph ph-x"></i></button></div><div id="urgent-list" style="max-height:60vh;overflow:auto"></div></div></div>
+  <div id="modal-admin-edit" class="overlay" onclick="window.closeAdminEdit()"><div class="bg-white rounded-t-2xl p-6 w-full max-w-md animate-slide-up" onclick="event.stopPropagation()"><h3 class="font-bold mb-3 text-lg">Edit Profile</h3><label class="text-xs text-gray-400 uppercase font-bold">Organization name</label><input id="edit-org-name" class="input-clean mt-1 mb-4" /><div class="mt-6 space-y-2"><button class="btn-black" onclick="window.saveAdminProfile()">Save Changes</button><button class="btn-outline border-none text-red-500" onclick="window.closeAdminEdit()">Cancel</button></div></div></div>
+  <div id="modal-report" class="overlay" onclick="window.closeReport()"><div class="bg-white rounded-2xl p-6 w-[90%] max-w-sm m-auto animate-slide-up shadow-2xl" onclick="event.stopPropagation()"><div class="text-center mb-4"><i class="ph-fill ph-warning-circle text-4xl text-orange-500 mb-2"></i><h3 class="font-bold text-lg">Report Post</h3><p class="text-sm text-gray-500">Why are you reporting this content?</p></div><textarea id="report-reason" class="input-clean h-24 text-sm resize-none mb-4" placeholder="Type reason here..."></textarea><div class="flex gap-2"><button class="btn-black py-3 text-sm" onclick="window.submitReport()">Submit Report</button><button class="btn-outline py-3 text-sm border-none" onclick="window.closeReport()">Cancel</button></div></div></div>
+  <div id="modal-comments" class="overlay items-end" onclick="window.closeComments()"><div class="sheet-bottom animate-slide-up" onclick="event.stopPropagation()"><div class="p-4 border-b border-gray-100 flex justify-between items-center"><div class="font-bold text-sm">Comments <span id="comment-header-count" class="text-gray-400 font-normal">(0)</span></div><button onclick="window.closeComments()"><i class="ph ph-x text-xl"></i></button></div><div id="comments-list" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"></div><div class="p-3 border-t border-gray-100 bg-white flex gap-2 items-center pb-6"><input id="comment-input" class="flex-1 bg-gray-100 rounded-full px-4 py-3 text-sm outline-none" placeholder="Add a comment..." /><button id="comment-post-btn" class="text-black font-bold text-sm p-2" onclick="window.postComment()">Post</button></div></div></div>
+  <div id="modal-urgent" class="overlay" onclick="window.closeUrgentPopup()"><div class="bg-white rounded-t-2xl p-6 w-full max-w-md animate-slide-up" onclick="event.stopPropagation()"><div class="flex items-center justify-between mb-3"><h3 class="font-bold text-lg">Urgent Updates & Replies</h3><button onclick="window.closeUrgentPopup()" class="text-gray-400"><i class="ph ph-x"></i></button></div><div id="urgent-list" style="max-height:60vh;overflow:auto"></div></div></div>
 
-  <script src="js/app.js"></script>
+  <script>
+    const universities = ["University of Dar es Salaam (UDSM)", "University of Dodoma (UDOM)", "IFM", "Ardhi University", "Mzumbe", "SUA", "DIT", "St. Joseph", "Tumaini University"];
+    const interests = ["All", "Internships","Scholarships","Tech & Innovation","Politics","Sports","Events","Creative Arts","Business","Science"];
+
+    let currentUser = null; 
+    let activeFiles = [];
+    let posts = [];
+    let currentImageIndex = {}; 
+    let editingPostId = null;
+    let isEditingStudent = false;
+
+    /* FUNCTIONS ATTACHED TO WINDOW TO FIX "NOT CLICKABLE" ISSUE */
+    window.loadStoredAccounts = function(){ window._students = JSON.parse(localStorage.getItem('students')||'[]'); window._admins = JSON.parse(localStorage.getItem('admins')||'[]'); }
+    window.saveStudents = function(){ localStorage.setItem('students', JSON.stringify(window._students||[])); }
+    window.saveAdmins = function(){ localStorage.setItem('admins', JSON.stringify(window._admins||[])); }
+    window.savePosts = function(){ localStorage.setItem('posts', JSON.stringify(posts||[])); window.updateBellIndicator(); }
+
+    window.loadPosts = function(){ 
+        const existing = JSON.parse(localStorage.getItem('posts')||'null');
+        if(!existing || existing.length < 5) {
+            posts = window.getInitialPosts(); // Dummy Data generator
+            window.savePosts(); 
+        } else {
+             posts = existing;
+        }
+    }
+    window.persistCurrentUser = function(){ if(currentUser) localStorage.setItem('currentUser', JSON.stringify(currentUser)); else localStorage.removeItem('currentUser'); }
+    window.loadCurrentUser = function(){ const cu = localStorage.getItem('currentUser'); if(cu) currentUser = JSON.parse(cu); }
+
+    window.navTo = function(id){ 
+        document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); 
+        const el=document.getElementById(id); 
+        if(el) el.classList.add('active'); 
+        window.scrollTo(0,0); 
+    }
+
+    /* UI HELPERS */
+    window.showUniList = function(dropdownId){ document.getElementById(dropdownId).classList.remove('hidden'); window.renderUniList(universities, dropdownId); }
+    window.filterUniList = function(q, dropdownId){ const filtered = universities.filter(u=>u.toLowerCase().includes(q.toLowerCase())); window.renderUniList(filtered, dropdownId); }
+    window.renderUniList = function(list, dropdownId){ const drop=document.getElementById(dropdownId); const targetInputId = dropdownId==='uni-dropdown-student'?'input-uni':'admin-uni-input'; if(list.length===0){ drop.innerHTML='<div class="p-3 text-sm text-gray-400">No matches found</div>'; return;} drop.innerHTML = list.map(u => `<div class="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-sm" onclick="window.selectUni('${u.replace(/'/g, "\\'")}', '${targetInputId}', '${dropdownId}')">${u}</div>`).join(''); }
+    window.selectUni = function(name,inputId,dropdownId){ document.getElementById(inputId).value = name; document.getElementById(dropdownId).classList.add('hidden'); }
+    
+    document.addEventListener('click', (e)=>{ if(!e.target.closest('.relative')) document.querySelectorAll('[id^="uni-dropdown"]').forEach(el=>el.classList.add('hidden')); });
+
+    window.confirmLogout = function(){ if(!currentUser) return window.handleLogout(); const type = currentUser.role==='admin' ? 'authority account' : 'student account'; if(confirm('Confirm logout from '+type+'?')) window.handleLogout(); }
+    window.handleLogout = function(){ if(currentUser){ const keySeen = 'seenSystem_'+currentUser.id; if(sessionStorage.getItem('hasViewedHome_'+(currentUser.id||'anon'))==='true'){ localStorage.setItem(keySeen,'true'); } } currentUser=null; window.persistCurrentUser(); window.updateBellIndicator(); window.navTo('view-intro'); }
+
+    /* STUDENT LOGIC */
+    window.openProfileMenu = function(){ if(!currentUser) return alert('Please login'); if(currentUser.type==='student') window.openStudentProfile(); else window.navTo('view-admin-dash'); }
+    
+    window.openStudentSignup = function(){
+      isEditingStudent = false; window.navTo('view-signup');
+      // Clear all fields
+      ['input-name','input-uni','input-email','input-password','input-year','input-course'].forEach(id=>document.getElementById(id).value='');
+      document.querySelectorAll('#interest-chips .chip').forEach(ch=>ch.classList.remove('active'));
+      document.getElementById('student-submit-btn').innerHTML = 'Enter Platform <i class="ph-bold ph-caret-right ml-2"></i>';
+      document.getElementById('student-logout-btn').classList.add('hidden-by-default');
+    }
+
+    window.finishStudentSignup = function(e){ 
+        e.preventDefault(); 
+        const email=document.getElementById('input-email').value.trim(); 
+        const password=document.getElementById('input-password').value; 
+        const name=document.getElementById('input-name').value.trim(); 
+        const uni=document.getElementById('input-uni').value.trim(); 
+        const year=document.getElementById('input-year').value; 
+        const course=document.getElementById('input-course').value; // COURSE HAPA
+
+        if(!uni) return alert('Please select university'); 
+        if(!course) return alert('Please enter your course');
+
+        const selected=Array.from(document.querySelectorAll('#interest-chips .chip.active')).map(n=> n.textContent==='All Interests' ? 'All' : n.textContent); 
+
+        if(isEditingStudent && currentUser && currentUser.type==='student'){ 
+            const idx = (window._students||[]).findIndex(s=>s.id===currentUser.id); 
+            if(idx!==-1){ 
+                const u=window._students[idx]; 
+                u.email=email; u.password=password; u.name=name; u.interests=selected; u.year=year; u.course=course; 
+                window._students[idx]=u; window.saveStudents(); currentUser=u; window.persistCurrentUser(); 
+                alert('Profile updated'); window.renderFeed(); window.navTo('view-home'); isEditingStudent = false; return; 
+            } 
+        }
+        if((window._students||[]).find(s=>s.email===email)) return alert('Email already registered'); 
+        const user={id:'stu'+Date.now(),type:'student',name,uni,interests:selected,email,password,year,course}; 
+        window._students.push(user); window.saveStudents(); currentUser=user; window.persistCurrentUser();
+        window.renderFeed(); window.navTo('view-home'); window.updateBellIndicator(); 
+    }
+
+    window.handleStudentLogin = function(e){ e&&e.preventDefault(); const email=document.getElementById('login-email').value.trim(); const password=document.getElementById('login-password').value; const found=(window._students||[]).find(s=>s.email===email&&s.password===password); if(!found) return alert('Invalid credentials'); currentUser=found; window.persistCurrentUser(); window.renderFeed(); window.navTo('view-home'); window.updateBellIndicator(); }
+
+    window.openStudentProfile = function(){ 
+        if(!currentUser||currentUser.type!=='student') return alert('No student logged in'); 
+        isEditingStudent = true; window.navTo('view-signup'); 
+        document.getElementById('input-name').value=currentUser.name||''; 
+        document.getElementById('input-uni').value=currentUser.uni||''; 
+        document.getElementById('input-email').value=currentUser.email||''; 
+        document.getElementById('input-password').value=currentUser.password||''; 
+        document.getElementById('input-year').value=currentUser.year||''; 
+        document.getElementById('input-course').value=currentUser.course||''; // FILL COURSE
+        
+        document.querySelectorAll('#interest-chips .chip').forEach(ch=>ch.classList.remove('active')); (currentUser.interests||[]).forEach(i=>{ const label = (i==='All' ? 'All Interests' : i); Array.from(document.querySelectorAll('#interest-chips .chip')).find(c=>c.textContent===label)?.classList.add('active'); }); 
+        document.getElementById('student-submit-btn').innerHTML = 'Save Changes'; 
+        document.getElementById('student-logout-btn').classList.remove('hidden-by-default');
+    }
+
+    /* ADMIN LOGIC */
+    window.toggleAdminUniField = function(){ const type=document.getElementById('admin-type').value; const el=document.getElementById('admin-uni-field'); if(type==='company'||type==='gov') el.style.display='none'; else el.style.display='block'; }
+    window.handleAdminSignup = function(e){ e&&e.preventDefault(); const name=document.getElementById('admin-name').value.trim(); const type=document.getElementById('admin-type').value; const uni=document.getElementById('admin-uni-input').value; const email=document.getElementById('admin-email').value.trim(); const password=document.getElementById('admin-password').value; if((type==='ministry'||type==='official')&& !uni) return alert('Select University'); const finalUni=(type==='company'||type==='gov')?'All':uni; const org={id:'org'+Date.now(),name,type,uni:finalUni,role:'admin',email,password}; window._admins.push(org); window.saveAdmins(); currentUser=org; window.persistCurrentUser(); window.updateAdminHeader(); window.renderAdminPostsList(); window.navTo('view-admin-dash'); }
+    window.handleAdminLogin = function(e){ e&&e.preventDefault(); const email=document.getElementById('admin-login-email').value.trim(); const password=document.getElementById('admin-login-password').value; const found=(window._admins||[]).find(a=>a.email===email&&a.password===password); if(!found) return alert('Invalid credentials'); currentUser=found; window.persistCurrentUser(); window.updateAdminHeader(); window.renderAdminPostsList(); window.navTo('view-admin-dash'); }
+    window.updateAdminHeader = function(){ if(!currentUser) return; document.getElementById('dash-name').textContent=currentUser.name; const verEl=document.getElementById('dash-verified'); const color = window.getVerifiedColor(currentUser.type); const badgeClass = 'badge-'+color; verEl.innerHTML = `<i class="ph-fill ph-seal-check ${badgeClass}"></i> Verified Official`; document.getElementById('dash-avatar-letter').innerText = currentUser.name.charAt(0); }
+
+    window.openAdminEdit = function(){ document.getElementById('edit-org-name').value=currentUser.name||''; document.getElementById('modal-admin-edit').classList.add('show'); }
+    window.closeAdminEdit = function(){ document.getElementById('modal-admin-edit').classList.remove('show'); }
+    window.saveAdminProfile = function(){ const v=document.getElementById('edit-org-name').value.trim(); if(v) currentUser.name=v; window.updateAdminHeader(); window.closeAdminEdit(); alert('Profile updated successfully'); const idx=window._admins.findIndex(a=>a.id===currentUser.id); if(idx!==-1){ window._admins[idx]=currentUser; window.saveAdmins(); } }
+
+    /* POST LOGIC */
+    window.initNewPost = function(){ editingPostId=null; document.getElementById('post-screen-title').innerText='New Update'; document.getElementById('post-content').value=''; activeFiles=[]; window.renderMediaPreviews(); const uniTargetContainer=document.getElementById('post-uni-target-container'); if(currentUser && (currentUser.type==='company'||currentUser.type==='gov')) uniTargetContainer.classList.remove('hidden'); else uniTargetContainer.classList.add('hidden'); window.setUrgency(document.querySelector('.urgency-btn'),'INFO'); window.navTo('view-admin-post'); }
+    window.triggerUpload = function(type){ const input=document.getElementById('file-input'); input.accept = type==='image'? 'image/*':'.pdf,.doc,.docx'; input.click(); }
+    window.handleFileSelect = function(input){ if(!input.files || input.files.length===0) return; const files = Array.from(input.files); activeFiles = files.map(file=>({ type: file.type.includes('image')?'image':'pdf', url: URL.createObjectURL(file), name: file.name })); window.renderMediaPreviews(); }
+    window.renderMediaPreviews = function(){ const mediaList=document.getElementById('media-list'); const fileList=document.getElementById('file-list'); mediaList.innerHTML=''; fileList.innerHTML=''; if(activeFiles.length===0){ document.getElementById('media-preview').classList.add('hidden'); document.getElementById('file-preview').classList.add('hidden'); return;} document.getElementById('media-preview').classList.remove('hidden'); document.getElementById('file-preview').classList.remove('hidden'); activeFiles.forEach(f=>{ if(f.type==='image'){ const div=document.createElement('div'); div.className='rounded overflow-hidden'; div.innerHTML = `<img src="${f.url}" class="w-full aspect-portrait object-cover">`; mediaList.appendChild(div);} else { const row=document.createElement('div'); row.className='flex items-center gap-2'; row.innerHTML = `<i class="ph-fill ph-file-pdf text-red-500 text-xl"></i><div><div class="text-sm font-bold">${f.name}</div></div>`; fileList.appendChild(row);} }); }
+    
+    window.handlePublishPost = function(){ const content=document.getElementById('post-content').value.trim(); const category=document.getElementById('post-category').value; const tag=document.getElementById('post-tag').value||'INFO'; let targetUni=currentUser?.uni||'All'; if(currentUser?.type==='company'||currentUser?.type==='gov') targetUni=document.getElementById('target-uni-select').value; 
+      if(!content && activeFiles.length===0) return alert('Write something.'); 
+      const targetInterestSelect = document.getElementById('target-interest');
+      let selectedInterests = targetInterestSelect ? Array.from(targetInterestSelect.options).filter(o=>o.selected).map(o=>o.value) : ['All'];
+      if(selectedInterests.length===0) selectedInterests = ['All'];
+
+      if(editingPostId){ const idx=posts.findIndex(p=>p.id===editingPostId); if(idx!==-1){ posts[idx].content=content; posts[idx].category=category; posts[idx].tag=tag; posts[idx].uni=targetUni; posts[idx].targetInterest = selectedInterests; if(activeFiles.length>0) posts[idx].mediaUrls=activeFiles.map(f=>({type:f.type,url:f.url,name:f.name})); window.savePosts(); alert('Post Updated!'); }} else { const type = (currentUser && currentUser.name==='PalmTweets System') ? 'system' : 'normal'; const newPost={ id:Date.now(), source:currentUser?currentUser.name:'Guest', type:type, verified:(type==='system'?'gold':window.getVerifiedColor(currentUser?.type)), avatarUrl:currentUser?.avatarUrl, content, mediaUrls: activeFiles.map(f=>({type:f.type,url:f.url,name:f.name})), category, uni:targetUni, tag, targetYear: document.getElementById('target-year-select').value||'All', targetInterest: selectedInterests, likes:0, comments:[], timestamp:Date.now(), time:'Just Now', dateISO:new Date().toISOString() }; posts.unshift(newPost); window.savePosts(); alert('Posted Successfully'); } window.renderAdminPostsList(); window.renderFeed(); window.navTo('view-admin-dash'); }
+    window.deletePost = function(id){ if(!confirm('Are you sure?')) return; posts=posts.filter(p=>p.id!==id); window.savePosts(); window.renderAdminPostsList(); window.renderFeed(); }
+
+    window.renderAdminPostsList = function(){ const list=document.getElementById('admin-posts-list'); list.innerHTML=''; if(!currentUser) return; const myPosts=posts.filter(p=>p.source===currentUser.name).sort((a,b)=>b.timestamp-a.timestamp); if(myPosts.length===0){ list.innerHTML='<div class="text-gray-400 text-sm text-center">No posts yet.</div>'; return; } myPosts.forEach(p=>{ const div=document.createElement('div'); div.className='bg-white p-3 border border-gray-100 rounded-lg flex justify-between items-center'; div.innerHTML = `<div class="flex-1 overflow-hidden"><div class="text-sm font-bold truncate pr-2">${p.content||'Attachment Only'}</div><div class="text-xs text-gray-400 flex gap-2"><span>${new Date(p.timestamp).toLocaleDateString()}</span><span>• ${p.likes} Likes</span><button class="text-xs text-gray-500 underline ml-2" onclick="window.openAdminComments(${p.id})">Comments (${p.comments.length})</button></div></div><div class="flex items-center gap-2"><button onclick="window.editPost(${p.id})" class="text-blue-500 bg-blue-50 p-2 rounded"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="window.deletePost(${p.id})" class="text-red-500 bg-red-50 p-2 rounded"><i class="ph-bold ph-trash"></i></button></div>`; list.appendChild(div); }); }
+
+    /* FEED & CATEGORY FIX */
+    window.getVerifiedColor = function(type){ if(type==='official') return 'green'; if(type==='company') return 'blue'; if(type==='system') return 'gold'; if(type==='ministry') return 'black'; if(type==='gov') return 'purple'; return 'black'; }
+    window.formatCount = function(num){ if(num>=1000) return (num/1000).toFixed(1)+'k'; return num; }
+    window.handleLike = function(btn,postId){ const post=posts.find(p=>p.id===postId); const icon=btn.querySelector('i'); const countSpan=btn.querySelector('span'); if(icon.classList.contains('ph-heart')){ icon.classList.remove('ph-heart'); icon.classList.add('ph-fill','ph-heart','text-red-500'); btn.classList.add('text-red-500'); post.likes++; } else { icon.classList.remove('ph-fill','ph-heart','text-red-500'); icon.classList.add('ph-heart'); btn.classList.remove('text-red-500'); post.likes--; } window.savePosts(); countSpan.textContent=window.formatCount(post.likes); }
+
+    let currentPostIdForComments = null;
+    window.openComments = function(postId){ currentPostIdForComments=postId; const post=posts.find(p=>p.id===postId); const list=document.getElementById('comments-list'); const countHeader=document.getElementById('comment-header-count'); list.innerHTML=''; countHeader.innerText = `(${post.comments.length})`; if(post.comments.length===0) list.innerHTML='<div class="text-center text-gray-400 text-sm mt-10">No comments yet.</div>'; else post.comments.forEach((c, idx)=>{ const div=document.createElement('div'); div.className='flex gap-3 text-sm'; const userInitial = (c.user && c.user.charAt) ? c.user.charAt(0) : '?'; div.innerHTML = `<div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-xs">${userInitial}</div><div><div class="font-bold text-xs text-gray-900">${c.user} <span class="text-gray-400 font-normal ml-1">${c.time}</span></div><div class="text-gray-700 mt-0.5">${c.text}</div></div>`; list.appendChild(div); }); document.getElementById('modal-comments').classList.add('show'); }
+    window.closeComments = function(){ document.getElementById('modal-comments').classList.remove('show'); }
+    window.postComment = function(){ const input=document.getElementById('comment-input'); const text=input.value.trim(); if(!text) return; const post=posts.find(p=>p.id===currentPostIdForComments); const newComment={ user: currentUser?currentUser.name:'Guest', userId: currentUser?currentUser.id:null, text, time:'Just now' }; post.comments.push(newComment); window.savePosts(); input.value=''; window.openComments(currentPostIdForComments); window.renderFeed(); }
+
+    window.openAdminComments = function(postId){ window.openComments(postId); }
+
+    window.setUrgency = function(btn,val){ document.querySelectorAll('.urgency-btn').forEach(b=>b.classList.remove('active')); if(btn && btn.classList) btn.classList.add('active'); document.getElementById('post-tag').value = val; }
+    window.openReport = function(postId){ document.getElementById('modal-report').classList.add('show'); document.getElementById('report-reason').value=''; }
+    window.closeReport = function(){ document.getElementById('modal-report').classList.remove('show'); }
+    window.submitReport = function(){ const reason=document.getElementById('report-reason').value; if(!reason) return alert('Please provide a reason.'); alert('Report submitted. We will review.'); window.closeReport(); }
+
+    window.updateBellIndicator = function(){ const dot = document.getElementById('bell-dot'); if(!dot) return; dot.style.display='none'; /* Logic simplified for stability */ }
+
+    window.initCarouselForPost = function(postId, count){ if(typeof currentImageIndex[postId] === 'undefined') currentImageIndex[postId]=0; }
+    window.showPrevImage = function(postId){ const post = posts.find(p=>p.id===postId); if(!post || !post.mediaUrls || post.mediaUrls.length===0) return; currentImageIndex[postId] = (currentImageIndex[postId] - 1 + post.mediaUrls.length) % post.mediaUrls.length; window.renderFeed(); }
+    window.showNextImage = function(postId){ const post = posts.find(p=>p.id===postId); if(!post || !post.mediaUrls || post.mediaUrls.length===0) return; currentImageIndex[postId] = (currentImageIndex[postId] + 1) % post.mediaUrls.length; window.renderFeed(); }
+
+    window.getDateLabel = function(dateISO){ const d=new Date(dateISO); const now=new Date(); if(d.toDateString()===now.toDateString()) return 'Today'; return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); }
+    
+    // THIS FIXES THE CATEGORIES NOT WORKING
+    window.filterFeed = function(category, btn){ 
+        if(btn){
+            document.querySelectorAll('#view-home .chip').forEach(c => c.classList.remove('active')); 
+            btn.classList.add('active');
+        }
+        window.renderFeed(category);
+    }
+
+    window.renderFeed = function(filter='all'){ 
+      const container=document.getElementById('feed-list'); container.innerHTML=''; const sortedPosts=[...posts].sort((a,b)=>b.timestamp-a.timestamp);
+      
+      if(currentUser && currentUser.type==='student'){ const sys = sortedPosts.find(p=>p.systemWelcome); if(sys){ const cp = Object.assign({}, sys); sortedPosts.unshift(cp); } }
+
+      // Filter Logic
+      const filteredPosts = sortedPosts.filter(post => {
+          if(post.type==='system' && !post.systemWelcome) return false;
+          if(filter !== 'all' && post.category !== filter && post.category !== 'system') return false;
+          if(currentUser && currentUser.type==='student'){ if(post.uni && post.uni!=='All' && post.uni!==currentUser.uni) return false; }
+          return true;
+      });
+
+      if(filteredPosts.length === 0){
+          container.innerHTML = `
+            <div class="flex flex-col items-center justify-center pt-20 px-10 text-center opacity-60 fade-in">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4"><i class="ph-fill ph-tray text-2xl text-gray-400"></i></div>
+                <h3 class="font-bold text-gray-900 mb-1">No Updates</h3><p class="text-sm text-gray-500">There are no posts in this category yet.</p>
+            </div>`;
+          return;
+      }
+
+      let lastDateLabel=''; 
+      filteredPosts.forEach(post=>{
+        const dateLabel=window.getDateLabel(post.dateISO); if(dateLabel!==lastDateLabel){ container.insertAdjacentHTML('beforeend',`<div class="date-divider"><span>${dateLabel}</span></div>`); lastDateLabel=dateLabel; }
+        let badgeClass='badge-black'; if(post.verified==='gold') badgeClass='badge-gold'; else if(post.verified==='blue') badgeClass='badge-blue'; else if(post.verified==='green') badgeClass='badge-green'; else if(post.verified==='purple') badgeClass='badge-purple';
+        let urgencyHTML=''; if(post.tag==='URGENT') urgencyHTML=`<span class="inline-block bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded ml-2">URGENT</span>`; else if(post.tag==='IMPORTANT') urgencyHTML=`<span class="inline-block bg-red-50 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded ml-2">IMPORTANT</span>`;
+        let avatarHTML=`<div class="w-10 h-10 rounded-lg bg-gray-900 text-white flex items-center justify-center font-bold text-lg">${(post.source||'?').charAt(0)}</div>`; if(post.avatarUrl) avatarHTML=`<img src="${post.avatarUrl}" class="w-10 h-10 rounded-lg object-cover bg-gray-100">`;
+        let mediaHTML=''; if(post.mediaUrls&&post.mediaUrls.length>0){ 
+          window.initCarouselForPost(post.id, post.mediaUrls.length);
+          if(post.mediaUrls.length===1){ const m = post.mediaUrls[0]; if(m.type==='image') mediaHTML = `<div class="mt-3 rounded-lg overflow-hidden border border-gray-100 bg-gray-50"><img src="${m.url}" class="w-full aspect-portrait" loading="lazy"></div>`; else mediaHTML = `<div class="mt-3 p-3 bg-gray-50 border border-gray-100 rounded-lg flex items-center gap-3"><i class="ph-fill ph-file-pdf text-red-500 text-xl"></i><div><div class="text-sm font-bold">${m.name||'Attached Document'}</div><div class="text-xs text-gray-500">Tap to view</div></div></div>`; }
+          else { const idx = currentImageIndex[post.id]||0; const m = post.mediaUrls[idx]; if(m.type==='image'){ mediaHTML = `<div class="mt-3 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 carousel-wrap"><img src="${m.url}" class="w-full aspect-portrait" loading="lazy">`; mediaHTML += `<div class="carousel-arrow carousel-left" onclick="window.showPrevImage(${post.id})">&#8249;</div>`; mediaHTML += `<div class="carousel-arrow carousel-right" onclick="window.showNextImage(${post.id})">&#8250;</div>`; mediaHTML += `<div class="carousel-indicator">${idx+1}/${post.mediaUrls.length}</div></div>`; } else { mediaHTML = `<div class="mt-3 p-3 bg-gray-50 border border-gray-100 rounded-lg flex items-center gap-3"><i class="ph-fill ph-file-pdf text-red-500 text-xl"></i><div><div class="text-sm font-bold">${m.name||'Attached Document'}</div><div class="text-xs text-gray-500">Tap to view</div></div></div>`; } }
+        }
+        const wrapperClass = post.type==='system'?'card-feed system-gold':'card-feed fade-in'; const likeCount=window.formatCount(post.likes); const commentCount=window.formatCount(post.comments.length);
+        const html = `
+          <article id="post-${post.id}" class="${wrapperClass}">
+            <div class="flex items-start gap-3 mb-3">
+              ${avatarHTML}
+              <div class="flex-1">
+                <div class="flex items-center gap-1 flex-wrap">
+                  <h3 class="font-bold text-sm text-gray-900">${post.source}</h3>
+                  <i class="ph-fill ph-seal-check ${badgeClass} text-sm"></i>
+                  ${urgencyHTML}
+                </div>
+                <div class="text-xs text-gray-400 font-medium">${post.time}</div>
+              </div>
+              <button class="text-gray-300" onclick="window.openReport(${post.id})"><i class="ph ph-warning-circle text-xl"></i></button>
+            </div>
+            <p class="text-sm leading-relaxed text-gray-800 whitespace-pre-line mb-2">${post.content||''}</p>
+            ${mediaHTML}
+            <div class="flex items-center justify-between border-t border-gray-100 pt-3 mt-3">
+              <div class="flex gap-6">
+                <button onclick="window.handleLike(this,${post.id})" class="flex items-center gap-1.5 text-gray-500 text-xs font-semibold hover:text-red-500 transition-colors"><i class="ph ph-heart text-lg"></i> <span>${likeCount}</span></button>
+                <button onclick="window.openComments(${post.id})" class="flex items-center gap-1.5 text-gray-500 text-xs font-semibold hover:text-black transition-colors"><i class="ph ph-chat-circle text-lg"></i> <span>${commentCount}</span></button>
+              </div>
+              <button onclick="alert('Shared via native app!')" class="text-gray-400 hover:text-black transition-colors"><i class="ph ph-share-network text-lg"></i></button>
+            </div>
+          </article>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+      });
+    }
+
+    window.editPost = function(id){ const post = posts.find(p=>p.id===id); if(!post) return alert('Post not found'); if(!currentUser || currentUser.name!==post.source) return alert('You can only edit your own posts'); editingPostId = id; document.getElementById('post-screen-title').innerText = 'Edit Post'; document.getElementById('post-content').value = post.content||''; document.getElementById('post-category').value = post.category||'official'; document.getElementById('post-tag').value = post.tag||'INFO'; 
+      const urgencyBtns = document.querySelectorAll('.urgency-btn'); urgencyBtns.forEach(b=>b.classList.remove('active')); if(post.tag==='URGENT'){ window.setUrgency(document.querySelectorAll('.urgency-btn')[2],'URGENT'); } else if(post.tag==='IMPORTANT'){ window.setUrgency(document.querySelectorAll('.urgency-btn')[1],'IMPORTANT'); } else window.setUrgency(document.querySelectorAll('.urgency-btn')[0],'INFO');
+      document.getElementById('target-year-select').value = post.targetYear||'All'; 
+      const tSelect = document.getElementById('target-interest'); if(tSelect){ Array.from(tSelect.options).forEach(o=> o.selected = false); if(post.targetInterest){ const arr = Array.isArray(post.targetInterest) ? post.targetInterest : [post.targetInterest]; arr.forEach(val=>{ const opt = Array.from(tSelect.options).find(o=>o.value===val); if(opt) opt.selected = true; }); } }
+      activeFiles = (post.mediaUrls||[]).map(m=>({type:m.type||'image',url:m.url,name:m.name||''})); window.renderMediaPreviews(); window.navTo('view-admin-post'); }
+
+    /* INITIALIZATION */
+    window.onload = function(){
+      window.loadStoredAccounts(); window.loadCurrentUser(); window.loadPosts();
+      
+      const chipContainer = document.getElementById('interest-chips'); chipContainer.innerHTML=''; interests.forEach(name=>{ const d=document.createElement('div'); d.className='chip'; d.textContent=name==='All'? 'All Interests': name; d.onclick=function(){ if(name==='All'){ document.querySelectorAll('#interest-chips .chip').forEach(c=>c.classList.remove('active')); this.classList.add('active'); } else { const allChip = Array.from(document.querySelectorAll('#interest-chips .chip')).find(c=>c.textContent==='All Interests'); if(allChip && allChip.classList.contains('active')) allChip.classList.remove('active'); this.classList.toggle('active'); } }; chipContainer.appendChild(d); });
+      const tInterest = document.getElementById('target-interest'); tInterest.innerHTML=''; interests.forEach(i=>{ const opt = document.createElement('option'); opt.value = i; opt.textContent = i==='All' ? 'All Interests' : i; tInterest.appendChild(opt); });
+      tInterest.addEventListener('change', (e)=>{ const options = Array.from(tInterest.options); const selectedValues = options.filter(o=>o.selected).map(o=>o.value); if(selectedValues.includes('All')){ options.forEach(o=>o.selected = true); } });
+      const targetUniSel = document.getElementById('target-uni-select'); targetUniSel.innerHTML=''; universities.forEach(u=>{ const opt=document.createElement('option'); opt.value=u; opt.textContent=u; targetUniSel.appendChild(opt); });
+
+      setTimeout(()=>{
+        if(currentUser){ if(currentUser.type==='student'){ window.renderFeed(); window.navTo('view-home'); } else if(currentUser.role==='admin'){ window.updateAdminHeader(); window.renderAdminPostsList(); window.navTo('view-admin-dash'); } else window.navTo('view-intro'); }
+        else window.navTo('view-intro'); window.updateBellIndicator();
+      }, 700);
+    };
+
+    /* DUMMY DATA GENERATOR */
+    window.getInitialPosts = function(){
+        return [
+            { id: 9999, source: "PalmTweets AI", type: "system", verified: "gold", time: "Pinned", content: "Welcome. You are now a Palm Tweeter!", category: "system", uni: "All", targetYear: "All", tag: "SYSTEM", dateISO: new Date().toISOString(), likes: 10542, comments: [], mediaUrls: [], timestamp: Date.now() + 100000, systemWelcome: true },
+            { id: 1, source: "Ministry of Loans", type: "gov", verified: "purple", time: "2h ago", content: "NOTICE: The appeal window for Batch 3 loan allocations is now open.", category: "official", uni: "All", targetYear: "All", tag: "IMPORTANT", dateISO: new Date().toISOString(), likes: 2877, comments: [], mediaUrls: [], timestamp: Date.now()-7200000 },
+            { id: 3, source: "Cheka Tu Event", type: "company", verified: "blue", time: "6h ago", content: "Student discount tickets for the upcoming comedy night are now available.", category: "event", uni: "All", targetYear: "All", tag: "INFO", dateISO: new Date().toISOString(), likes: 4102, comments: [], mediaUrls: [], timestamp: Date.now()-21600000 }
+        ];
+    }
+  </script>
 </body>
 </html>
