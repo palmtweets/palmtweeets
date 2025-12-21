@@ -4,64 +4,70 @@ import { auth } from './auth.js';
 import { feed } from './feed.js';
 import { admin } from './admin.js';
 
-// Initialize Supabase Client
 export const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Expose modules to window object
 window.utils = utils;
 window.auth = auth;
 window.feed = feed;
 window.admin = admin;
 
-// Variable ya kuhifadhi install prompt
+// --- 1. MTEGO WA KU-INSTALL (Kama ule wa mwanzo) ---
 let deferredPrompt; 
 
 window.addEventListener('beforeinstallprompt', (e) => {
+  // Zuia isijaribu ku-install yenyewe, subiri button
   e.preventDefault();
   deferredPrompt = e;
-  console.log("Install prompt captured");
+  console.log("Tayari kwa install");
 });
 
 window.onload = async () => {
     
-    // 1. ANGALIA KAMA TUPO KWENYE APP (Backup ya CSS)
-    // Kama yuko kwenye App, ruka moja kwa moja
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+    // --- 2. UCHAWI WA KUGUNDUA KAMA APP IME-INSTALLIWA ---
+    // Hiki kipande ndicho kilikosekana kwenye kodi yako
+    // Kinaangalia: Je, tupo ndani ya App? Kama ndio, RUKA button, nenda ndani.
+    const isApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    
+    if (isApp) {
+        // IKIWA TAYARI IME-INSTALLIWA:
+        // Usionyeshe button, ingia moja kwa moja View-Intro
         utils.navTo('view-intro');
     } else {
-        // Kama yuko kwenye Browser, onyesha Gatekeeper
+        // KAMA BADO (Browser):
+        // Onyesha button ya Initialize
         utils.detectDevice();
     }
     
     utils.initPWA();
     
-    // 2. LOGIC YA KITUFE (SIMPLE & AGGRESSIVE)
+    // --- 3. LOGIC YA KITUFE (FORCE ENTRY) ---
     const installBtn = document.getElementById('pwa-install-btn');
     if(installBtn) {
         installBtn.addEventListener('click', async () => {
             
-            // Jaribu ku-install kama inawezekana
+            // Jaribu ku-install (Kama haijainstalliwa)
             if (deferredPrompt) {
                 deferredPrompt.prompt();
-                // Hatujali matokeo, tunasafisha tu
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log("User response:", outcome);
                 deferredPrompt = null;
             }
             
-            // REKEBISHO: BILA KUJALI KAMA IME-INSTALL AU LA
-            // Subiri nusu sekunde (ili prompt ionekane) kisha Vuka Gatekeeper uende ndani!
+            // HATA KAMA AKIKATAA KU-INSTALL AU AKIKUBALI:
+            // Lazima tumpeleke ndani (view-intro)
+            // Tunaweka kamuda kidogo (500ms) ili asione screen inarukaruka
             setTimeout(() => {
-                utils.navTo('view-intro');
-            }, 500); 
+                utils.navTo('view-intro'); 
+            }, 500);
         });
     }
     
-    // 3. Fill Dropdowns
+    // Dropdowns za Vyuo
     const uniSelect = document.getElementById('reg-uni');
     if(uniSelect) uniSelect.innerHTML = UNIVERSITIES.slice(1).map(u => `<option value="${u}">${u}</option>`).join('');
     
     const adminUniSelect = document.getElementById('reg-admin-uni');
     if(adminUniSelect) adminUniSelect.innerHTML = UNIVERSITIES.slice(1).map(u => `<option value="${u}">${u}</option>`).join('');
 
-    // 4. Start Auth Check
     auth.init();
 };
