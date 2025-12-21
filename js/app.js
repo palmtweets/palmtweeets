@@ -11,7 +11,6 @@ window.auth = auth;
 window.feed = feed;
 window.admin = admin;
 
-// 1. TUNATEGA INSTALL PROMPT (Kama ipo, sawa. Kama haipo, sawa)
 let deferredPrompt; 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
@@ -20,36 +19,31 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 window.onload = async () => {
     
-    // 2. CHECK RAHISI: Kama tuko ndani ya App, vuka geti
-    // Tunatumia display-mode pekee, ndiyo uhakika
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-        document.getElementById('view-gatekeeper').style.display = 'none';
+    // 1. AUTO-CHECK: Kama tayari app ipo (Standalone), ruka gatekeeper
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+        document.getElementById('view-gatekeeper').classList.remove('active');
         document.getElementById('view-intro').classList.add('active');
-    } 
-    
-    // Hatutumii tena utils.detectDevice() kuficha/kuonyesha button
-    // Button tayari ipo kwenye HTML (Hardcoded)
+    } else {
+        // Kama yuko Browser: Angalia ni simu gani (iPhone au Android)
+        utils.detectDevice();
+    }
     
     utils.initPWA();
     
-    // 3. KITUFE CHA UHAKIKA (NO CONDITIONS)
+    // 2. ANDROID BUTTON LOGIC (NO FREEZING)
     const installBtn = document.getElementById('pwa-install-btn');
     if(installBtn) {
         installBtn.onclick = () => {
-            // A. HAMISHA PAGE MARA MOJA (Hii haiwezi kuganda)
+            // A. BADILI PAGE PAPO HAPO (Usiulize swali)
             document.getElementById('view-gatekeeper').classList.remove('active');
-            document.getElementById('view-gatekeeper').style.display = 'none'; // Futa kabisa
-            
             document.getElementById('view-intro').classList.add('active');
-            document.getElementById('view-intro').style.display = 'flex'; // Washa
 
-            // B. JARIBU KU-INSTALL (Baadae)
-            // Hata kama hii ikifeli, mtumiaji tayari yuko ndani
+            // B. JARIBU KU-INSTALL (Kimya kimya)
             if (deferredPrompt) {
                 setTimeout(() => {
                     deferredPrompt.prompt();
                     deferredPrompt = null;
-                }, 1000);
+                }, 800); // Subiri sekunde 0.8 ukiwa ndani ndio ulete notification
             }
         };
     }
