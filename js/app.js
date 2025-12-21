@@ -4,31 +4,30 @@ import { auth } from './auth.js';
 import { feed } from './feed.js';
 import { admin } from './admin.js';
 
+// Initialize Supabase Client
 export const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Expose modules to window object
 window.utils = utils;
 window.auth = auth;
 window.feed = feed;
 window.admin = admin;
 
-// --- 1. MTEGO WA KU-INSTALL ---
+// Variable ya kuhifadhi install prompt
 let deferredPrompt; 
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  console.log("Tayari kwa install");
+  console.log("Install prompt captured");
 });
 
 window.onload = async () => {
     
-    // --- 2. UCHAWI WA KUGUNDUA KAMA APP IME-INSTALLIWA ---
-    // Hii ndiyo itaruka Gatekeeper kama mtu anatumia App
-    const isApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-    
-    if (isApp) {
-        console.log("Tupo ndani ya App - Tunaruka Gatekeeper");
-        utils.navTo('view-intro'); // Ruka moja kwa moja ndani
+    // 1. ANGALIA KAMA TUPO KWENYE APP (Backup ya CSS)
+    // Kama yuko kwenye App, ruka moja kwa moja
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+        utils.navTo('view-intro');
     } else {
         // Kama yuko kwenye Browser, onyesha Gatekeeper
         utils.detectDevice();
@@ -36,30 +35,33 @@ window.onload = async () => {
     
     utils.initPWA();
     
-    // --- 3. LOGIC YA KITUFE (FORCE ENTRY) ---
+    // 2. LOGIC YA KITUFE (SIMPLE & AGGRESSIVE)
     const installBtn = document.getElementById('pwa-install-btn');
     if(installBtn) {
         installBtn.addEventListener('click', async () => {
             
-            // Jaribu ku-install
+            // Jaribu ku-install kama inawezekana
             if (deferredPrompt) {
                 deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
+                // Hatujali matokeo, tunasafisha tu
                 deferredPrompt = null;
             }
             
-            // HATA KAMA IMESHINDIKANA KU-INSTALL, INGA NDANI!
-            // Hapa ndipo palipokuwa panagoma mwanzo
-            utils.navTo('view-intro'); 
+            // REKEBISHO: BILA KUJALI KAMA IME-INSTALL AU LA
+            // Subiri nusu sekunde (ili prompt ionekane) kisha Vuka Gatekeeper uende ndani!
+            setTimeout(() => {
+                utils.navTo('view-intro');
+            }, 500); 
         });
     }
     
-    // Dropdowns za Vyuo
+    // 3. Fill Dropdowns
     const uniSelect = document.getElementById('reg-uni');
     if(uniSelect) uniSelect.innerHTML = UNIVERSITIES.slice(1).map(u => `<option value="${u}">${u}</option>`).join('');
     
     const adminUniSelect = document.getElementById('reg-admin-uni');
     if(adminUniSelect) adminUniSelect.innerHTML = UNIVERSITIES.slice(1).map(u => `<option value="${u}">${u}</option>`).join('');
 
+    // 4. Start Auth Check
     auth.init();
 };
