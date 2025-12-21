@@ -34,10 +34,9 @@
 
     <div class="max-w-xs mx-auto space-y-4 text-sm text-gray-500 leading-relaxed font-medium mb-10">
         <p>To maintain the integrity of our verified network, PalmTweets is exclusively available via Direct Access.</p>
-        <p>We operate outside public marketplaces to ensure a noise-free environment strictly for university stakeholders.</p>
     </div>
     
-    <div id="action-android" class="w-full max-w-xs block">
+    <div id="action-android" class="hidden w-full max-w-xs">
       <button id="pwa-install-btn" class="btn-black flex items-center justify-center gap-3">
         <span>Initialize App Experience</span>
         <i class="ph-bold ph-lock-key"></i>
@@ -47,15 +46,13 @@
 
     <div id="action-ios" class="hidden w-full max-w-xs bg-gray-50 p-4 rounded-xl text-left border border-gray-100">
       <div class="flex items-start gap-3">
-          <i class="ph-bold ph-share-network text-xl mt-1"></i>
+          <i class="ph-fill ph-shield-check text-xl mt-1 text-black"></i>
           <div>
-            <p class="text-xs font-bold text-black mb-1">To proceed:</p>
-            <p class="text-xs text-gray-500">Tap the Share icon below and select <span class="font-bold text-black">'Add to Home Screen'</span>.</p>
+            <p class="text-xs font-bold text-black mb-1">Authorised Personnel Only</p>
+            <p class="text-xs text-gray-500 leading-relaxed">
+               To ensure safety, we limit access to verified devices. Tap the <span class="font-bold text-black">Share Icon</span> below, then select <span class="font-bold text-black">'Add to Home Screen'</span> to get your pass key.
+            </p>
           </div>
-      </div>
-      <div class="mt-3 pt-3 border-t border-gray-200 flex items-start gap-3">
-          <i class="ph-bold ph-plus-square text-xl mt-1"></i>
-          <p class="text-xs text-gray-500">This grants you the <span class="font-bold text-black">pass key</span> to enter the network.</p>
       </div>
       <button onclick="utils.navTo('view-intro')" class="mt-6 text-xs font-bold text-gray-400 underline block mx-auto">Continue as Guest (Preview)</button>
     </div>
