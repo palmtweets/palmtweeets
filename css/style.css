@@ -8,252 +8,90 @@
     --accent-gold: #D4AF37;
     --accent-black: #000000;
     --muted: #64748b;
-    --bg-pc: #f1f5f9; /* Rangi ya nje kwenye PC */
+    --bg-pc: #f1f5f9;
 }
 
-/* --- GLOBAL STYLES --- */
+/* --- GLOBAL STYLES (PC CENTERED VIEW) --- */
 body {
     font-family: 'Inter', sans-serif;
-    background: var(--bg-pc); 
+    background: var(--bg-pc); /* Rangi ya Kijivu Nje */
     color: var(--text-main);
     margin: 0;
     -webkit-tap-highlight-color: transparent;
     display: flex;
-    justify-content: center; /* Hii inaweka App katikati kwenye PC */
+    justify-content: center; /* Weka App Katikati */
     min-height: 100vh;
-}
-
-/* Hii ndio 'Simu' yetu. Inahakikisha App haitanuki hovyo kwenye PC */
-.app-container {
-    max-width: 480px;
-    width: 100%;
-    background: #ffffff;
-    min-height: 100vh;
-    position: relative;
-    box-shadow: 0 0 25px rgba(0,0,0,0.05); /* Kivuli kidogo kwa ajili ya PC */
-    display: flex;
-    flex-direction: column;
 }
 
 /* --- SCREEN MANAGEMENT --- */
+/* Hapa ndipo tunadhibiti ukubwa wa App */
 .screen {
     display: none;
     flex-direction: column;
     width: 100%;
+    max-width: 480px; /* Isiwe pana kuliko simu */
     min-height: 100vh;
+    background: #ffffff; /* Ndani iwe nyeupe */
+    box-shadow: 0 0 40px rgba(0,0,0,0.1); /* Kivuli kwa ajili ya PC */
 }
 
 .screen.active {
     display: flex;
 }
 
+/* Kama ni Simu ndogo, ondoa kivuli na margin */
+@media (max-width: 480px) {
+    body { background: #ffffff; }
+    .screen { box-shadow: none; max-width: 100%; }
+}
+
 /* --- ANIMATIONS --- */
-.fade-in {
-    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    opacity: 0;
-    transform: translateY(10px);
-}
+.fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(10px); }
+@keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
 
-@keyframes fadeIn {
-    to { opacity: 1; transform: translateY(0); }
-}
+.animate-slide-up { animation: slideUp 0.3s ease-out forwards; transform: translateY(100%); }
+@keyframes slideUp { to { transform: translateY(0); } }
 
-.animate-slide-up {
-    animation: slideUp 0.3s ease-out forwards;
-    transform: translateY(100%);
-}
-
-@keyframes slideUp {
-    to { transform: translateY(0); }
-}
-
-/* --- UI COMPONENTS (PREMIUM LOOK) --- */
+/* --- UI COMPONENTS --- */
 .input-clean {
-    width: 100%;
-    padding: 16px;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 12px;
-    font-size: 15px;
-    outline: none;
-    transition: all 0.2s;
-    color: #0f172a;
+    width: 100%; padding: 16px; background: #F8FAFC; border: 1px solid #E2E8F0;
+    border-radius: 12px; font-size: 15px; outline: none; transition: all 0.2s; color: black;
 }
-
-.input-clean:focus {
-    background: white;
-    border-color: var(--accent-black);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
+.input-clean:focus { background: white; border-color: var(--accent-black); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 
 .btn-black {
-    background: var(--accent-black);
-    color: white;
-    padding: 16px;
-    border-radius: 12px;
-    font-weight: 700;
-    width: 100%;
-    letter-spacing: 0.5px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    border: none;
-    cursor: pointer;
-    transition: transform 0.1s;
+    background: var(--accent-black); color: white; padding: 16px; border-radius: 12px;
+    font-weight: 700; width: 100%; letter-spacing: 0.5px; border: none; cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1); transition: transform 0.1s;
 }
-
-.btn-black:active {
-    transform: scale(0.98);
-}
+.btn-black:active { transform: scale(0.98); }
 
 .btn-outline {
-    background: transparent;
-    border: 1px solid #E2E8F0;
-    color: var(--text-main);
-    padding: 14px;
-    border-radius: 12px;
-    font-weight: 600;
-    width: 100%;
-    cursor: pointer;
+    background: transparent; border: 1px solid #E2E8F0; color: var(--text-main);
+    padding: 14px; border-radius: 12px; font-weight: 600; width: 100%; cursor: pointer;
 }
 
-/* --- CHIPS & FILTERS --- */
 .chip {
-    padding: 8px 16px;
-    border-radius: 100px;
-    font-size: 13px;
-    font-weight: 600;
-    background: #F1F5F9;
-    color: var(--muted);
-    cursor: pointer;
-    white-space: nowrap;
-    border: 1px solid transparent;
-    transition: all 0.2s;
+    padding: 8px 16px; border-radius: 100px; font-size: 13px; font-weight: 600;
+    background: #F1F5F9; color: var(--muted); cursor: pointer; white-space: nowrap; transition: all 0.2s;
 }
+.chip.active { background: var(--accent-black); color: white; }
 
-.chip.active {
-    background: var(--accent-black);
-    color: white;
-    border-color: black;
-}
+/* --- UTILITIES --- */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.snap-x { scroll-snap-type: x mandatory; }
+.snap-center { scroll-snap-align: center; }
 
-/* --- CARDS & STATS --- */
-.stat-card {
-    background: white;
-    padding: 16px;
-    border-radius: 12px;
-    border: 1px solid #f3f4f6;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-}
-
-.upload-btn {
-    border: 1px dashed #d1d5db;
-    border-radius: 12px;
-    padding: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    color: var(--muted);
-    font-weight: 700;
-    cursor: pointer;
-    background: #f9fafb;
-    transition: all 0.2s;
-}
-
-.upload-btn:hover {
-    background: #f3f4f6;
-    border-color: #000;
-    color: #000;
-}
-
-.urgency-btn {
-    padding: 10px;
-    border-radius: 8px;
-    font-weight: 600;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.urgency-btn.active {
-    background: var(--accent-black);
-    color: white;
-    border-color: black;
-}
-
-/* --- MODALS & OVERLAYS --- */
+/* MODAL */
 .overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 100;
-    display: none; /* Inawashwa na JS */
-    align-items: flex-end; /* Sheet inatokea chini */
-    justify-content: center;
-    backdrop-filter: blur(2px);
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100;
+    display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px);
 }
-
-.overlay.flex {
-    display: flex; /* Hii ndio inaiwasha */
-}
-
 .sheet-bottom {
-    background: white;
-    width: 100%;
-    max-width: 480px; /* Isiwe kubwa kuliko app */
-    border-top-left-radius: 24px;
-    border-top-right-radius: 24px;
-    max-height: 85vh;
-    display: flex;
-    flex-direction: column;
+    background: white; width: 100%; max-width: 480px;
+    border-top-left-radius: 24px; border-top-right-radius: 24px;
+    max-height: 85vh; display: flex; flex-direction: column;
 }
 
-/* --- UTILITIES & CAROUSEL --- */
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-.no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-/* Hii ndio inafanya picha ziwe 'Slide' (Carousel) */
-.snap-x {
-    scroll-snap-type: x mandatory;
-}
-.snap-center {
-    scroll-snap-align: center;
-}
-
-/* Date Divider */
-.date-divider {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 24px 0;
-    position: relative;
-}
-.date-divider::before {
-    content: '';
-    position: absolute;
-    left: 20px;
-    right: 20px;
-    height: 1px;
-    background: #F1F5F9;
-    z-index: 0;
-}
-.date-divider span {
-    background: #FAFAFA;
-    padding: 4px 16px;
-    z-index: 1;
-    color: #94a3b8;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-radius: 20px;
-}
-
-/* Typography Helpers */
 .brand-logo { display: flex; align-items: center; }
