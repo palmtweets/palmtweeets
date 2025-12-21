@@ -28,3 +28,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg-body);color:var(--text-m
 /* Snap Carousel */
 .snap-x { scroll-snap-type: x mandatory; }
 .snap-center { scroll-snap-align: center; }
+
+/* --- REKEBISHO MUHIMU LA PWA (CSS MAGIC) --- */
+/* Hii inasema: Kama simu imefungua App (Standalone), FICHA Gatekeeper na ONYESHA Intro kwa nguvu */
+@media all and (display-mode: standalone) {
+    #view-gatekeeper {
+        display: none !important;
+    }
+    #view-intro {
+        display: flex !important;
+        animation: none;
+    }
+}
