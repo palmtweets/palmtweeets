@@ -2,10 +2,9 @@
 
 // Check Session on Load
 async function checkSession() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await sb.auth.getSession();
     if (session) {
-        // Fetch User Profile
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+        const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
         if (profile) {
             currentUser = profile;
             return true;
@@ -16,7 +15,7 @@ async function checkSession() {
 
 // LOGOUT
 async function handleLogout(){ 
-    await supabase.auth.signOut();
+    await sb.auth.signOut();
     currentUser = null; 
     navTo('view-intro'); 
     showToast('Logged out successfully', 'success');
@@ -24,7 +23,6 @@ async function handleLogout(){
 
 /* STUDENT ACTIONS */
 function openStudentSignup(){
-    // Clear fields
     document.getElementById('input-name').value = ''; 
     document.getElementById('input-uni').value = ''; 
     document.getElementById('input-email').value = ''; 
@@ -45,17 +43,15 @@ async function finishStudentSignup(e){
 
     toggleBtnLoading('student-submit-btn', true);
 
-    // 1. Sign Up Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
+    const { data: authData, error: authError } = await sb.auth.signUp({ email, password });
     
     if (authError) {
         toggleBtnLoading('student-submit-btn', false);
         return showToast(authError.message, 'error');
     }
 
-    // 2. Create Profile
     if (authData.user) {
-        const { error: profileError } = await supabase.from('profiles').insert([{
+        const { error: profileError } = await sb.from('profiles').insert([{
             id: authData.user.id,
             email,
             role: 'student',
@@ -63,7 +59,7 @@ async function finishStudentSignup(e){
             uni,
             year,
             course,
-            verified: true // Students auto-verified
+            verified: true 
         }]);
 
         if (profileError) {
@@ -71,7 +67,6 @@ async function finishStudentSignup(e){
              return showToast('Error creating profile: ' + profileError.message, 'error');
         }
 
-        // Login immediately
         currentUser = { id: authData.user.id, name, uni, role: 'student', year, course };
         renderFeed();
         navTo('view-home');
@@ -87,19 +82,18 @@ async function handleStudentLogin(e){
     
     toggleBtnLoading('btn-student-login', true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
     if (error) {
         toggleBtnLoading('btn-student-login', false);
         return showToast('Invalid credentials', 'error');
     }
 
-    // Get Profile
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single();
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
     
     if(profile.role !== 'student'){
         toggleBtnLoading('btn-student-login', false);
-        await supabase.auth.signOut();
+        await sb.auth.signOut();
         return showToast('This is not a student account', 'error');
     }
 
@@ -112,7 +106,7 @@ async function handleStudentLogin(e){
 
 function openProfileMenu(){ 
     if(!currentUser) return showToast('Please login first', 'error'); 
-    if(currentUser.role==='student') openStudentSignup(); // Re-use for edit
+    if(currentUser.role==='student') openStudentSignup(); 
     else if(currentUser.role==='admin') navTo('view-admin-dash'); 
 }
 
@@ -129,24 +123,22 @@ async function handleAdminSignup(e){
     
     toggleBtnLoading('btn-admin-signup', true);
 
-    // 1. Auth Signup
-    const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
+    const { data: authData, error: authError } = await sb.auth.signUp({ email, password });
 
     if (authError) {
         toggleBtnLoading('btn-admin-signup', false);
         return showToast(authError.message, 'error');
     }
 
-    // 2. Profile Creation (PENDING STATUS)
     if (authData.user) {
-        const { error: profileError } = await supabase.from('profiles').insert([{
+        const { error: profileError } = await sb.from('profiles').insert([{
             id: authData.user.id,
             email,
             role: 'admin',
             name,
             uni,
             admin_type: type,
-            verified: false // PENDING VERIFICATION
+            verified: false 
         }]);
 
         if (profileError) {
@@ -156,7 +148,7 @@ async function handleAdminSignup(e){
 
         toggleBtnLoading('btn-admin-signup', false);
         showToast('Account created! Pending verification by Super Admin.');
-        navTo('view-admin-intro'); // Do not log in yet
+        navTo('view-admin-intro'); 
     }
 }
 
@@ -167,25 +159,23 @@ async function handleAdminLogin(e){
     
     toggleBtnLoading('btn-admin-login', true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
     if (error) {
         toggleBtnLoading('btn-admin-login', false);
         return showToast('Invalid credentials', 'error');
     }
 
-    // Get Profile & Check Verification
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single();
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
 
     if (profile.role !== 'admin') {
-        await supabase.auth.signOut();
+        await sb.auth.signOut();
         toggleBtnLoading('btn-admin-login', false);
         return showToast('Not an official account', 'error');
     }
 
-    // PENDING CHECK
     if (profile.verified === false) {
-        await supabase.auth.signOut();
+        await sb.auth.signOut();
         toggleBtnLoading('btn-admin-login', false);
         return showToast('Account is pending verification.', 'error');
     }
@@ -214,10 +204,8 @@ function updateAdminHeader(){
     } 
     document.getElementById('dash-name').textContent=currentUser.name; 
     const verEl=document.getElementById('dash-verified'); 
-    // Logic for badge color
     let color = 'black';
     if(currentUser.admin_type === 'official') color = 'green';
-    
     const badgeClass = 'badge-'+color; 
     verEl.innerHTML = `<i class="ph-fill ph-seal-check ${badgeClass}"></i> Official Account`; 
 }
@@ -232,7 +220,7 @@ function closeAdminEdit(){ document.getElementById('modal-admin-edit').classList
 async function saveAdminProfile(){ 
     const v=document.getElementById('edit-org-name').value.trim(); 
     if(v) {
-        const { error } = await supabase.from('profiles').update({ name: v }).eq('id', currentUser.id);
+        const { error } = await sb.from('profiles').update({ name: v }).eq('id', currentUser.id);
         if(!error) {
             currentUser.name=v; 
             updateAdminHeader(); 
