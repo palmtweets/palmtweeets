@@ -1,6 +1,5 @@
-// BADILISHA HAPA KILA UNAPOFANYA MABADILIKO MAKUBWA
-// Mfano: Leo weka v100, kesho ukibadili picha weka v101
-const CACHE_NAME = 'palmtweets-v106';
+// BADILISHA HII NAMBA KILA UKIREKEBISHA KITU
+const CACHE_NAME = 'palmtweets-v-final-force'; 
 
 const ASSETS = [
   './',
@@ -18,18 +17,13 @@ const ASSETS = [
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
 ];
 
-// 1. INSTALL: Hifadhi files kwenye simu
 self.addEventListener('install', (e) => {
-  self.skipWaiting(); // Lazimisha ku-install mpya haraka
+  self.skipWaiting(); // Lazimisha update mpya iingie mara moja
   e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('Caching assets...');
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 });
 
-// 2. ACTIVATE: Futa cache za zamani (Hapa ndipo tunaua ile ya jana)
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keyList) => {
@@ -43,10 +37,9 @@ self.addEventListener('activate', (e) => {
       );
     })
   );
-  return self.clients.claim(); // Chukua control ya browser odha moja
+  return self.clients.claim();
 });
 
-// 3. FETCH: Tumia cache, ukikosa tafuta mtandaoni
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then((response) => {
@@ -54,9 +47,3 @@ self.addEventListener('fetch', (e) => {
     })
   );
 });
-    caches.match(e.request).then((response) => response || fetch(e.request))
-  );
-});
-
-
-
