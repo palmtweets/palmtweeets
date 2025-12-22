@@ -8,7 +8,7 @@ async function renderFeed(filter='all'){
     container.innerHTML='<div class="p-8 text-center"><i class="ph ph-spinner animate-spin text-2xl"></i></div>';
     
     // Fetch Posts from Supabase
-    let query = supabase.from('posts').select(`*, creator:profiles(name, admin_type, avatar_url)`).order('created_at', { ascending: false });
+    let query = supabase.from('posts').select(`*, creator:profiles(name, admin_type, role, avatar_url)`).order('created_at', { ascending: false });
     
     if(filter !== 'all') query = query.eq('category', filter);
 
@@ -138,10 +138,12 @@ async function handleLike(btn, postId){
         icon.classList.remove('ph-heart'); icon.classList.add('ph-fill','ph-heart','text-red-500'); btn.classList.add('text-red-500'); 
         countSpan.innerText = formatCount(current + 1);
         // DB Update
-        await supabase.rpc('increment_likes', { post_id: postId }); // Need RPC or simple update
+        await supabase.rpc('increment_likes', { row_id: postId }); 
     } else { 
         icon.classList.remove('ph-fill','ph-heart','text-red-500'); icon.classList.add('ph-heart'); btn.classList.remove('text-red-500'); 
         countSpan.innerText = formatCount(current - 1);
+        // DB Update
+        await supabase.rpc('decrement_likes', { row_id: postId }); 
     } 
 }
 
