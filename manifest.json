@@ -1,11 +1,10 @@
 {
-  "name": "PalmTweets Verified",
+  "name": "PalmTweets",
   "short_name": "PalmTweets",
-  "start_url": "./index.html",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
-  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "icons/icon-192.png",
