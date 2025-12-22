@@ -4,31 +4,55 @@ let activeFiles = [];
 let editingPostId = null;
 
 async function renderAdminPostsList(){ 
-    const list=document.getElementById('admin-posts-list'); 
-    list.innerHTML='Loading...'; 
+    const list = document.getElementById('admin-posts-list'); 
+    const totalLikesEl = document.getElementById('dash-total-likes');
+    const totalPostsEl = document.getElementById('dash-total-posts');
+
+    list.innerHTML = '<div class="text-center py-4"><i class="ph ph-spinner animate-spin"></i> Loading data...</div>'; 
+    
     if(!currentUser) return; 
 
-    const { data: myPosts } = await supabase.from('posts').select('*').eq('creator_id', currentUser.id).order('created_at', {ascending: false});
+    // Vuta posts zote za huyu Admin kutoka Supabase
+    const { data: myPosts, error } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('creator_id', currentUser.id)
+        .order('created_at', {ascending: false});
     
-    list.innerHTML='';
-    if(myPosts.length===0){ 
-        list.innerHTML='<div class="text-gray-400 text-sm text-center">No posts yet.</div>'; 
+    list.innerHTML = '';
+
+    if(error || !myPosts || myPosts.length === 0){ 
+        list.innerHTML = '<div class="text-gray-400 text-sm text-center py-4">No posts yet.</div>';
+        if(totalLikesEl) totalLikesEl.innerText = '0';
+        if(totalPostsEl) totalPostsEl.innerText = '0';
         return; 
     } 
     
-    myPosts.forEach(p=>{ 
-        const div=document.createElement('div'); 
-        div.className='bg-white p-3 border border-gray-100 rounded-lg flex justify-between items-center'; 
+    // --- REAL ANALYTICS ---
+    const totalPosts = myPosts.length;
+    const totalLikes = myPosts.reduce((sum, post) => sum + (post.likes_count || 0), 0);
+
+    if(totalLikesEl) totalLikesEl.innerText = formatCount(totalLikes);
+    if(totalPostsEl) totalPostsEl.innerText = totalPosts;
+    // ----------------------
+
+    myPosts.forEach(p => { 
+        const div = document.createElement('div'); 
+        div.className = 'bg-white p-3 border border-gray-100 rounded-lg flex justify-between items-center'; 
+        
+        const displayContent = p.content ? p.content : (p.media_urls && p.media_urls.length > 0 ? '📷 Image Post' : 'No content');
+
         div.innerHTML = `
           <div class="flex-1 overflow-hidden">
-            <div class="text-sm font-bold truncate pr-2">${p.content||'Attachment Only'}</div>
-            <div class="text-xs text-gray-400 flex gap-2">
+            <div class="text-sm font-bold truncate pr-2">${displayContent}</div>
+            <div class="text-xs text-gray-400 flex gap-2 mt-1">
                 <span>${new Date(p.created_at).toLocaleDateString()}</span>
                 <span>• ${p.likes_count} Likes</span>
+                <span class="bg-gray-100 px-1.5 rounded text-[10px] uppercase font-bold tracking-wide">${p.tag}</span>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="deletePost(${p.id})" class="text-red-500 bg-red-50 p-2 rounded"><i class="ph-bold ph-trash"></i></button>
+            <button onclick="deletePost(${p.id})" class="text-red-500 bg-red-50 p-2 rounded hover:bg-red-100 transition-colors"><i class="ph-bold ph-trash"></i></button>
           </div>`; 
         list.appendChild(div); 
     }); 
@@ -67,7 +91,6 @@ function triggerUpload(type){
 function handleFileSelect(input){ 
     if(!input.files || input.files.length===0) return; 
     const files = Array.from(input.files); 
-    // Store actual File objects for upload
     activeFiles = files.map(file=>({ 
         fileObject: file, 
         type: file.type.includes('image')?'image':'pdf', 
