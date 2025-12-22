@@ -1,9 +1,8 @@
-/* ADMIN DASHBOARD LOGIC FULL */
+/* ADMIN DASHBOARD LOGIC */
 
 let activeFiles = [];
 let editingPostId = null;
 
-// 1. MAIN FUNCTION: Inaitwa Admin akilogin
 async function renderAdminPostsList(){ 
     const list = document.getElementById('admin-posts-list'); 
     const totalLikesEl = document.getElementById('dash-total-likes');
@@ -13,8 +12,8 @@ async function renderAdminPostsList(){
     
     if(!currentUser) return; 
 
-    // A. FETCH POSTS & ANALYTICS
-    const { data: myPosts, error } = await supabase
+    // Fetch Posts
+    const { data: myPosts, error } = await sb
         .from('posts')
         .select('*')
         .eq('creator_id', currentUser.id)
@@ -27,14 +26,12 @@ async function renderAdminPostsList(){
         if(totalLikesEl) totalLikesEl.innerText = '0';
         if(totalPostsEl) totalPostsEl.innerText = '0';
     } else {
-        // Real Analytics
         const totalPosts = myPosts.length;
         const totalLikes = myPosts.reduce((sum, post) => sum + (post.likes_count || 0), 0);
 
         if(totalLikesEl) totalLikesEl.innerText = formatCount(totalLikes);
         if(totalPostsEl) totalPostsEl.innerText = totalPosts;
 
-        // Render Posts
         myPosts.forEach(p => { 
             const div = document.createElement('div'); 
             div.className = 'bg-white p-3 border border-gray-100 rounded-lg flex justify-between items-center'; 
@@ -57,25 +54,19 @@ async function renderAdminPostsList(){
         }); 
     }
 
-    // B. FETCH MESSAGES (SUPPORT INBOX) - HII NDIO MPYA
     loadSupportMessages();
 }
 
-// 2. FUNCTION YA KUVUTA UJUMBE WA WANAFUNZI
 async function loadSupportMessages() {
     const inboxEl = document.getElementById('admin-support-inbox');
     if(!inboxEl) return;
 
     inboxEl.innerHTML = '<div class="py-4 text-center"><i class="ph ph-spinner animate-spin"></i> Checking inbox...</div>';
-
-    // Admin anaona meseji zilizotumwa kwake (kwa department yake au jina lake)
-    // Kwa urahisi wa sasa, Admin anaona meseji zote zilizotumwa kwa "Department" yake inayoendana na `admin_name` au `admin_type`
-    // NOTE: Ili hii iwe precise 100%, tungehitaji column ya 'department' kwenye profile ya admin, 
-    // lakini kwa sasa tutavuta zote ili uone zinafanya kazi, kisha unaweza kuweka filter.
     
-    const { data: msgs, error } = await supabase
+    // Fetch Messages
+    const { data: msgs, error } = await sb
         .from('messages')
-        .select('*, sender:profiles(name, year, course)') // Join na profile ya mwanafunzi
+        .select('*, sender:profiles(name, year, course)') 
         .order('created_at', {ascending: false});
 
     if(error || !msgs || msgs.length === 0) {
@@ -85,12 +76,9 @@ async function loadSupportMessages() {
 
     inboxEl.innerHTML = '';
     const listContainer = document.createElement('div');
-    listContainer.className = 'flex flex-col gap-2 max-h-60 overflow-y-auto'; // Scrollable inbox
+    listContainer.className = 'flex flex-col gap-2 max-h-60 overflow-y-auto';
 
     msgs.forEach(msg => {
-        // Filter logic: Only show if msg.department matches Admin's Name or Type (Optional)
-        // Kwa sasa tunaonyesha zote ili uone system inafanya kazi
-        
         const item = document.createElement('div');
         item.className = 'text-left p-3 bg-gray-50 border border-gray-100 rounded-lg';
         item.innerHTML = `
@@ -101,7 +89,7 @@ async function loadSupportMessages() {
             <div class="text-xs font-bold text-gray-400 uppercase mb-1">To: ${msg.department}</div>
             <p class="text-sm text-gray-700 leading-snug">${msg.content}</p>
             <div class="mt-2 flex justify-end">
-                <button onclick="replyToStudent('${msg.sender?.name}')" class="text-[10px] font-bold border border-gray-300 px-2 py-1 rounded bg-white hover:bg-black hover:text-white transition-colors">Reply</button>
+                <button onclick="alert('Reply feature coming next update!')" class="text-[10px] font-bold border border-gray-300 px-2 py-1 rounded bg-white hover:bg-black hover:text-white transition-colors">Reply</button>
             </div>
         `;
         listContainer.appendChild(item);
@@ -110,26 +98,18 @@ async function loadSupportMessages() {
     inboxEl.appendChild(listContainer);
 }
 
-// 3. REPLY FUNCTION (Placeholder for external action like Email/WhatsApp for now)
-function replyToStudent(studentName) {
-    alert(`To reply to ${studentName}, please use the official university email system or locate them via Registration Number.`);
-    // Future: Hapa unaweza kuweka system ya kujibu ndani ya app
-}
-
 async function deletePost(id){ 
     if(!confirm('Are you sure you want to delete this post?')) return; 
-    const { error } = await supabase.from('posts').delete().eq('id', id);
+    const { error } = await sb.from('posts').delete().eq('id', id);
     if(!error) {
         showToast('Post deleted successfully');
         renderAdminPostsList(); 
-        // Pia update feed kule home ili ipotee
         renderFeed(); 
     } else {
         showToast('Error deleting post: ' + error.message, 'error');
     }
 }
 
-/* POST CREATION LOGIC (Kama awali) */
 function initNewPost(){ 
     editingPostId=null; 
     document.getElementById('post-screen-title').innerText='New Update'; 
@@ -208,28 +188,24 @@ async function handlePublishPost(){
 
     toggleBtnLoading('btn-publish-post', true);
 
-    // 1. Upload Files to Supabase Storage
     let uploadedMedia = [];
     if(activeFiles.length > 0) {
         for(let f of activeFiles) {
-            // Sanitize file name to avoid errors
             const safeName = f.name.replace(/[^a-zA-Z0-9.]/g, '_');
             const fileName = `${Date.now()}_${safeName}`;
             
-            const { data, error } = await supabase.storage.from('media').upload(fileName, f.fileObject);
+            const { data, error } = await sb.storage.from('media').upload(fileName, f.fileObject);
             
             if(!error) {
-                const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
+                const { data: { publicUrl } } = sb.storage.from('media').getPublicUrl(fileName);
                 uploadedMedia.push({ type: f.type, url: publicUrl, name: f.name });
             } else {
                 console.error("Upload error:", error);
-                // Continue without this file or handle error
             }
         }
     }
 
-    // 2. Insert Post to DB
-    const { error } = await supabase.from('posts').insert([{
+    const { error } = await sb.from('posts').insert([{
         creator_id: currentUser.id,
         source_name: currentUser.name,
         content: content,
@@ -245,7 +221,6 @@ async function handlePublishPost(){
     if(!error){
         showToast('Posted Successfully'); 
         renderAdminPostsList(); 
-        // Safisha fomu
         document.getElementById('post-content').value = '';
         activeFiles = [];
         renderMediaPreviews();
