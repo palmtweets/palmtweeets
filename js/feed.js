@@ -1,4 +1,4 @@
-/* FEED LOGIC (REAL SUPABASE DATA) */
+/* FEED LOGIC (REAL SUPABASE DATA + REPLIES) */
 let posts = [];
 let currentImageIndex = {};
 let currentPostIdForComments = null;
@@ -7,7 +7,7 @@ async function renderFeed(filter='all'){
     const container=document.getElementById('feed-list'); 
     container.innerHTML='<div class="p-8 text-center"><i class="ph ph-spinner animate-spin text-2xl"></i></div>';
     
-    // Fetch Posts from Supabase (Requires JOIN with profiles)
+    // Fetch Posts from Supabase
     let query = sb.from('posts').select(`*, creator:profiles(name, admin_type, role, avatar_url)`).order('created_at', { ascending: false });
     
     if(filter !== 'all') query = query.eq('category', filter);
@@ -21,12 +21,9 @@ async function renderFeed(filter='all'){
     posts = data;
     container.innerHTML = '';
 
-    // Logic for filtering by Uni/Course for students
     const visiblePosts = posts.filter(post => {
         if(currentUser && currentUser.role === 'student') {
-            // Filter by Uni
             if(post.uni_target && post.uni_target !== 'All' && post.uni_target !== currentUser.uni) return false;
-            // Filter by Course
             if(post.course_target && post.course_target.trim() !== '' && !currentUser.course.toLowerCase().includes(post.course_target.toLowerCase())) return true; 
         }
         return true;
@@ -34,6 +31,8 @@ async function renderFeed(filter='all'){
 
     if(visiblePosts.length === 0) {
         container.innerHTML = '<div class="p-8 text-center text-gray-400">No updates yet.</div>';
+        // Hata kama hakuna posts, check replies
+        if(currentUser) checkMyReplies();
         return;
     }
 
@@ -46,7 +45,6 @@ async function renderFeed(filter='all'){
         }
         
         let badgeClass='badge-black'; 
-        // Badge logic based on admin_type
         if(post.creator?.admin_type === 'official') badgeClass='badge-green';
         if(post.creator?.role === 'system') badgeClass = 'badge-gold';
 
@@ -57,7 +55,6 @@ async function renderFeed(filter='all'){
         let avatarHTML=`<div class="w-10 h-10 rounded-lg bg-gray-900 text-white flex items-center justify-center font-bold text-lg">${(post.source_name||'?').charAt(0)}</div>`; 
         if(post.creator?.avatar_url) avatarHTML=`<img src="${post.creator.avatar_url}" class="w-10 h-10 rounded-lg object-cover bg-gray-100">`;
         
-        // Media Logic
         let mediaHTML=''; 
         let mediaUrls = post.media_urls || [];
         if(mediaUrls.length > 0){ 
@@ -107,6 +104,35 @@ async function renderFeed(filter='all'){
         `;
         container.insertAdjacentHTML('beforeend', html);
     });
+
+    // Check replies after loading feed
+    if(currentUser){
+        checkMyReplies();
+    }
+}
+
+// NEW FUNCTION: CHECK REPLIES
+async function checkMyReplies(){
+    const dot = document.getElementById('bell-dot');
+    
+    // Vuta meseji zangu ambazo zina reply
+    const { data: replies } = await sb
+        .from('messages')
+        .select('*')
+        .eq('sender_id', currentUser.id)
+        .not('reply_content', 'is', null) // Zile zenye jibu tu
+        .order('replied_at', {ascending: false});
+
+    if(replies && replies.length > 0){
+        // Onyesha Red Dot
+        if(dot) dot.style.display = 'block';
+        
+        // Hifadhi kwenye memory ili akibonyeza Bell tuonyeshe
+        window.mySupportReplies = replies;
+    } else {
+        if(dot) dot.style.display = 'none';
+        window.mySupportReplies = [];
+    }
 }
 
 function filterFeed(category, btn){ 
@@ -130,7 +156,6 @@ function showNextImage(postId){
     renderFeed(); 
 }
 
-/* INTERACTION LOGIC */
 async function handleLike(btn, postId){ 
     const icon=btn.querySelector('i'); 
     const countSpan=btn.querySelector('span'); 
@@ -206,7 +231,7 @@ function submitReport(){
     closeReport(); 
 }
 
-/* DYNAMIC SUPPORT MODAL */
+/* DYNAMIC SUPPORT MODAL (Wired with Supabase) */
 async function openSupportModal(){ 
     const modal = document.getElementById('modal-support');
     const select = document.getElementById('support-dept');
