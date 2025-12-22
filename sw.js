@@ -1,4 +1,4 @@
-const CACHE_NAME = 'palmtweets-v1';
+const CACHE_NAME = 'palmtweets-100';
 const ASSETS = [
   './',
   './index.html',
@@ -25,3 +25,4 @@ self.addEventListener('fetch', (e) => {
     caches.match(e.request).then((response) => response || fetch(e.request))
   );
 });
+
