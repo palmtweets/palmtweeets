@@ -33,14 +33,10 @@ window.onload = async () => {
 /* GLOBAL LISTENERS */
 // Bell Icon Logic
 function updateBellIndicator(){ 
-    // Real implementation requires fetching unread notifications
-    // Keeping UI simple for now
     const dot = document.getElementById('bell-dot'); 
     if(dot) dot.style.display='none'; 
 }
 
 function openUrgentPopup(){ 
-    // Re-use logic or fetch urgency posts
-    // For now, static alert/toast or simple view
     showToast('No urgent alerts currently.');
 }
