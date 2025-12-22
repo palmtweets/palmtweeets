@@ -1,4 +1,4 @@
-/* FEED LOGIC */
+/* FEED LOGIC (REAL SUPABASE DATA) */
 let posts = [];
 let currentImageIndex = {};
 let currentPostIdForComments = null;
@@ -7,23 +7,26 @@ async function renderFeed(filter='all'){
     const container=document.getElementById('feed-list'); 
     container.innerHTML='<div class="p-8 text-center"><i class="ph ph-spinner animate-spin text-2xl"></i></div>';
     
-    // Fetch Posts using 'sb'
+    // Fetch Posts from Supabase (Requires JOIN with profiles)
     let query = sb.from('posts').select(`*, creator:profiles(name, admin_type, role, avatar_url)`).order('created_at', { ascending: false });
     
     if(filter !== 'all') query = query.eq('category', filter);
 
     const { data, error } = await query;
     if(error) {
-        console.log(error); // Debugging
+        console.log(error); 
         return showToast('Error loading feed', 'error');
     }
     
     posts = data;
     container.innerHTML = '';
 
+    // Logic for filtering by Uni/Course for students
     const visiblePosts = posts.filter(post => {
         if(currentUser && currentUser.role === 'student') {
+            // Filter by Uni
             if(post.uni_target && post.uni_target !== 'All' && post.uni_target !== currentUser.uni) return false;
+            // Filter by Course
             if(post.course_target && post.course_target.trim() !== '' && !currentUser.course.toLowerCase().includes(post.course_target.toLowerCase())) return true; 
         }
         return true;
@@ -43,6 +46,7 @@ async function renderFeed(filter='all'){
         }
         
         let badgeClass='badge-black'; 
+        // Badge logic based on admin_type
         if(post.creator?.admin_type === 'official') badgeClass='badge-green';
         if(post.creator?.role === 'system') badgeClass = 'badge-gold';
 
@@ -53,6 +57,7 @@ async function renderFeed(filter='all'){
         let avatarHTML=`<div class="w-10 h-10 rounded-lg bg-gray-900 text-white flex items-center justify-center font-bold text-lg">${(post.source_name||'?').charAt(0)}</div>`; 
         if(post.creator?.avatar_url) avatarHTML=`<img src="${post.creator.avatar_url}" class="w-10 h-10 rounded-lg object-cover bg-gray-100">`;
         
+        // Media Logic
         let mediaHTML=''; 
         let mediaUrls = post.media_urls || [];
         if(mediaUrls.length > 0){ 
@@ -110,6 +115,7 @@ function filterFeed(category, btn){
     renderFeed(category); 
 }
 
+/* CAROUSEL LOGIC */
 function initCarouselForPost(postId, count){ if(typeof currentImageIndex[postId] === 'undefined') currentImageIndex[postId]=0; }
 function showPrevImage(postId){ 
     const post = posts.find(p=>p.id===postId); 
@@ -124,6 +130,7 @@ function showNextImage(postId){
     renderFeed(); 
 }
 
+/* INTERACTION LOGIC */
 async function handleLike(btn, postId){ 
     const icon=btn.querySelector('i'); 
     const countSpan=btn.querySelector('span'); 
@@ -199,11 +206,51 @@ function submitReport(){
     closeReport(); 
 }
 
-function openSupportModal(){ document.getElementById('modal-support').classList.add('show'); document.getElementById('support-msg').value=''; }
+/* DYNAMIC SUPPORT MODAL */
+async function openSupportModal(){ 
+    const modal = document.getElementById('modal-support');
+    const select = document.getElementById('support-dept');
+    const msgBox = document.getElementById('support-msg');
+    
+    // Reset fields
+    msgBox.value = '';
+    select.innerHTML = '<option value="" disabled selected>Loading offices...</option>';
+    
+    modal.classList.add('show'); 
+
+    // Fetch verified Admins from the Student's University ONLY
+    if(currentUser && currentUser.uni){
+        // Select profiles where role=admin AND verified=true AND uni=currentUser.uni
+        const { data: offices, error } = await sb
+            .from('profiles')
+            .select('name, admin_type')
+            .eq('role', 'admin')
+            .eq('verified', true)
+            .eq('uni', currentUser.uni);
+
+        if(error || !offices || offices.length === 0){
+            select.innerHTML = '<option value="" disabled selected>No official offices found for your campus.</option>';
+        } else {
+            select.innerHTML = '<option value="" disabled selected>Select Department</option>';
+            offices.forEach(office => {
+                const opt = document.createElement('option');
+                opt.value = office.name; 
+                opt.textContent = office.name;
+                select.appendChild(opt);
+            });
+        }
+    } else {
+        select.innerHTML = '<option value="" disabled selected>Error: Campus not identified.</option>';
+    }
+}
+
 function closeSupportModal(){ document.getElementById('modal-support').classList.remove('show'); }
+
 async function sendSupport(){ 
-    const msg=document.getElementById('support-msg').value.trim(); 
+    const msg = document.getElementById('support-msg').value.trim(); 
     const dept = document.getElementById('support-dept').value;
+    
+    if(!dept) return showToast('Please select a department', 'error');
     if(!msg) return showToast('Please describe your issue', 'error'); 
     
     toggleBtnLoading('btn-support-send', true);
@@ -215,10 +262,10 @@ async function sendSupport(){
     }]);
 
     if(!error){
-        showToast('Message sent to Office', 'success'); 
+        showToast('Message sent successfully', 'success'); 
         closeSupportModal(); 
     } else {
-        showToast('Failed to send', 'error');
+        showToast('Failed to send: ' + error.message, 'error');
     }
     toggleBtnLoading('btn-support-send', false);
 }
