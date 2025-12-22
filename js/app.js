@@ -1,50 +1,54 @@
-/* APP INITIALIZATION - FINAL PRODUCTION VERSION */
+/* APP INITIALIZATION */
 
 window.onload = async () => {
-    // 1. Check Auth State (Kuangalia kama user yupo)
-    // Tunatumia 'sb' kulingana na config.js mpya
-    const hasSession = await checkSession();
-    
-    // 2. Route Logic (Kuelekeza user sehemu sahihi)
-    setTimeout(() => {
-        if(hasSession && currentUser){ 
-            if(currentUser.role === 'student'){ 
-                renderFeed(); 
-                navTo('view-home'); // Hii inaondoa Splash Screen na kuweka Home
-            } else if(currentUser.role === 'admin'){ 
-                updateAdminHeader(); 
-                renderAdminPostsList(); 
-                navTo('view-admin-dash'); // Hii inaondoa Splash Screen na kuweka Admin Dash
-            } else {
-                // Kama role haijulikani (Safety fallback)
-                navTo('view-intro');
+    // Tunasubiri kidogo kuhakikisha scripts nyingine (auth.js, config.js) zime-load
+    setTimeout(async () => {
+        try {
+            // 1. Check Auth State (Kutoka auth.js)
+            // Kama checkSession haipo, itaruka kwenye catch (error) na kupeleka Intro
+            const hasSession = await checkSession();
+            
+            // 2. Route Logic
+            if(hasSession && currentUser){ 
+                if(currentUser.role === 'student'){ 
+                    renderFeed(); 
+                    navTo('view-home'); 
+                } else if(currentUser.role === 'admin'){ 
+                    updateAdminHeader(); 
+                    renderAdminPostsList(); 
+                    navTo('view-admin-dash'); 
+                } else {
+                    navTo('view-intro');
+                }
+            } else { 
+                navTo('view-intro'); 
             }
-        } else { 
-            // Kama hajalogin, mpeleke Intro
-            navTo('view-intro'); 
+        } catch (error) {
+            console.error("Initialization Error:", error);
+            // Ikitokea error yoyote, usigande, mpeleke user 'Intro' akaanze upya
+            navTo('view-intro');
         }
-    }, 700); // Tunasubiri kidogo (0.7 sec) ili splash screen ionekane kidogo
+    }, 800); // 800ms delay kwa smooth splash
 
-    // 3. Register PWA Service Worker (Kwa ajili ya speed na offline)
+    // 3. Register PWA
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
-            .then(() => console.log('Service Worker Registered'))
+            .then(() => console.log('SW Registered'))
             .catch(err => console.log('SW Error:', err));
     }
 };
 
-/* GLOBAL LISTENERS & UTILS */
+/* GLOBAL LISTENERS */
 
-// Hii inatumika kufunga Popups zote (Urgent & Support)
+// Hii ilikosekana mwanzo - Sasa X itafanya kazi
 function closeUrgentPopup(){ 
     document.getElementById('modal-urgent').classList.remove('show'); 
 }
 
-// Logic ya kufungua Urgent Popup (Inaonyesha Majibu ya Admin)
 function openUrgentPopup(){ 
     const list = document.getElementById('urgent-list');
     const modal = document.getElementById('modal-urgent');
-    // window.mySupportReplies inatoka kwenye feed.js (checkMyReplies)
+    // Inavuta replies kutoka feed.js
     const replies = window.mySupportReplies || [];
 
     list.innerHTML = '';
@@ -74,17 +78,11 @@ function openUrgentPopup(){
 
     modal.classList.add('show');
     
-    // Ficha dot nyekundu akishafungua
+    // Ficha dot akishafungua
     const dot = document.getElementById('bell-dot');
     if(dot) dot.style.display = 'none';
 }
 
-// Update Bell (Imehamishiwa logic kwenye feed.js, hapa tunaiacha tupu au kwa matumizi mengine)
 function updateBellIndicator(){ 
-    // Logic handled in feed.js -> checkMyReplies()
+    // Logic moved to feed.js
 }
-    const dot = document.getElementById('bell-dot');
-    if(dot) dot.style.display = 'none';
-}
-
-
