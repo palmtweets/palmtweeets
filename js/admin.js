@@ -1,129 +1,166 @@
-import { supabase } from './app.js';
-import { auth } from './auth.js';
-import { utils } from './utils.js';
-import { UNIVERSITIES } from './config.js';
+/* ADMIN DASHBOARD LOGIC */
 
-export const admin = {
-    activeFiles: [],
+let activeFiles = [];
+let editingPostId = null;
 
-    loadDash: async () => {
-        document.getElementById('admin-name').innerText = auth.profile.full_name;
-        document.getElementById('admin-avatar').innerText = auth.profile.full_name.charAt(0);
-        
-        const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student');
-        const { data } = await supabase.from('posts').select('*').eq('author_id', auth.user.id).order('created_at', { ascending: false });
-        
-        document.getElementById('dash-reach').innerText = utils.formatCount(count || 0);
-        let likes = 0; data.forEach(p => likes += p.likes_count);
-        let rate = count > 0 ? (likes / count) * 100 : 0;
-        document.getElementById('dash-rate').innerText = rate.toFixed(1) + '%';
-        
-        admin.renderHistory(data);
-    },
+async function renderAdminPostsList(){ 
+    const list=document.getElementById('admin-posts-list'); 
+    list.innerHTML='Loading...'; 
+    if(!currentUser) return; 
 
-    renderHistory: (posts) => {
-        const container = document.getElementById('admin-feed-list');
-        container.innerHTML = '';
-        posts.forEach(post => {
-            const html = `
-                <div class="bg-white p-3 rounded-xl border flex justify-between items-center">
-                    <div class="overflow-hidden pr-2">
-                        <div class="text-sm font-bold truncate">${post.content || 'Media Post'}</div>
-                        <div class="text-xs text-gray-400">${utils.formatDate(post.created_at)} • ${post.likes_count} Likes</div>
-                    </div>
-                    <button onclick="admin.deletePost(${post.id})" class="text-red-500 bg-red-50 p-2 rounded-full"><i class="ph-bold ph-trash"></i></button>
-                </div>`;
-            container.insertAdjacentHTML('beforeend', html);
-        });
-    },
+    const { data: myPosts } = await supabase.from('posts').select('*').eq('creator_id', currentUser.id).order('created_at', {ascending: false});
+    
+    list.innerHTML='';
+    if(myPosts.length===0){ 
+        list.innerHTML='<div class="text-gray-400 text-sm text-center">No posts yet.</div>'; 
+        return; 
+    } 
+    
+    myPosts.forEach(p=>{ 
+        const div=document.createElement('div'); 
+        div.className='bg-white p-3 border border-gray-100 rounded-lg flex justify-between items-center'; 
+        div.innerHTML = `
+          <div class="flex-1 overflow-hidden">
+            <div class="text-sm font-bold truncate pr-2">${p.content||'Attachment Only'}</div>
+            <div class="text-xs text-gray-400 flex gap-2">
+                <span>${new Date(p.created_at).toLocaleDateString()}</span>
+                <span>• ${p.likes_count} Likes</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="deletePost(${p.id})" class="text-red-500 bg-red-50 p-2 rounded"><i class="ph-bold ph-trash"></i></button>
+          </div>`; 
+        list.appendChild(div); 
+    }); 
+}
 
-    initPost: () => {
-        admin.activeFiles = []; 
-        document.getElementById('file-preview-area').innerHTML = '';
-        document.getElementById('post-content').value = '';
-        
-        const role = auth.profile.role;
-        const targetBox = document.getElementById('targeting-box');
-        const select = document.getElementById('post-targets');
-        
-        if (['company', 'gov'].includes(role)) {
-            targetBox.classList.remove('hidden');
-            select.innerHTML = UNIVERSITIES.map(u => `<option value="${u}">${u}</option>`).join('');
-        } else {
-            targetBox.classList.add('hidden');
-        }
-        utils.navTo('view-admin-post');
-    },
+async function deletePost(id){ 
+    if(!confirm('Are you sure?')) return; 
+    const { error } = await supabase.from('posts').delete().eq('id', id);
+    if(!error) {
+        showToast('Post deleted');
+        renderAdminPostsList(); 
+        renderFeed(); 
+    } else {
+        showToast('Error deleting post', 'error');
+    }
+}
 
-    handleFiles: (input) => {
-        const files = Array.from(input.files);
-        admin.activeFiles = [...admin.activeFiles, ...files];
-        const area = document.getElementById('file-preview-area');
-        area.innerHTML = '';
-        
-        admin.activeFiles.forEach((file, idx) => {
-            const isImg = file.type.startsWith('image/');
-            const div = document.createElement('div');
-            div.className = 'flex-shrink-0 w-16 h-16 rounded-lg bg-gray-100 overflow-hidden relative border';
-            div.innerHTML = isImg 
-                ? `<img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover">`
-                : `<div class="w-full h-full flex items-center justify-center text-red-500"><i class="ph-fill ph-file-pdf text-2xl"></i></div>`;
+/* POST CREATION */
+function initNewPost(){ 
+    editingPostId=null; 
+    document.getElementById('post-screen-title').innerText='New Update'; 
+    document.getElementById('post-content').value=''; 
+    activeFiles=[]; 
+    renderMediaPreviews(); 
+    setUrgency(document.querySelector('.urgency-btn'),'INFO'); 
+    document.getElementById('target-course').value = ''; 
+    navTo('view-admin-post'); 
+}
+
+function triggerUpload(type){ 
+    const input=document.getElementById('file-input'); 
+    input.accept = type==='image'? 'image/*':'.pdf,.doc,.docx'; 
+    input.click(); 
+}
+
+function handleFileSelect(input){ 
+    if(!input.files || input.files.length===0) return; 
+    const files = Array.from(input.files); 
+    // Store actual File objects for upload
+    activeFiles = files.map(file=>({ 
+        fileObject: file, 
+        type: file.type.includes('image')?'image':'pdf', 
+        name: file.name,
+        previewUrl: URL.createObjectURL(file) 
+    })); 
+    renderMediaPreviews(); 
+}
+
+function renderMediaPreviews(){ 
+    const mediaPreview=document.getElementById('media-preview'); 
+    const mediaList=document.getElementById('media-list'); 
+    const filePreview=document.getElementById('file-preview'); 
+    const fileList=document.getElementById('file-list'); 
+    
+    mediaList.innerHTML=''; 
+    fileList.innerHTML=''; 
+    
+    if(activeFiles.length===0){ 
+        mediaPreview.classList.add('hidden'); 
+        filePreview.classList.add('hidden'); 
+        return;
+    } 
+    mediaPreview.classList.remove('hidden'); 
+    filePreview.classList.remove('hidden'); 
+    
+    activeFiles.forEach(f=>{ 
+        if(f.type==='image'){ 
+            const div=document.createElement('div'); 
+            div.className='rounded overflow-hidden'; 
+            div.innerHTML = `<img src="${f.previewUrl}" class="w-full aspect-portrait object-cover">`; 
+            mediaList.appendChild(div);
+        } else { 
+            const row=document.createElement('div'); 
+            row.className='flex items-center gap-2'; 
+            row.innerHTML = `<i class="ph-fill ph-file-pdf text-red-500 text-xl"></i><div><div class="text-sm font-bold">${f.name}</div></div>`; 
+            fileList.appendChild(row);
+        } 
+    }); 
+}
+
+function setUrgency(btn,val){ 
+    document.querySelectorAll('.urgency-btn').forEach(b=>b.classList.remove('active')); 
+    if(btn && btn.classList) btn.classList.add('active'); 
+    document.getElementById('post-tag').value = val; 
+}
+
+async function handlePublishPost(){ 
+    const content=document.getElementById('post-content').value.trim(); 
+    const category=document.getElementById('post-category').value; 
+    const tag=document.getElementById('post-tag').value||'INFO'; 
+    let targetUni=currentUser?.uni||'All'; 
+    const targetCourse = document.getElementById('target-course').value.trim(); 
+    
+    if(!content && activeFiles.length===0) return showToast('Write something first', 'error'); 
+
+    toggleBtnLoading('btn-publish-post', true);
+
+    // 1. Upload Files to Supabase Storage
+    let uploadedMedia = [];
+    if(activeFiles.length > 0) {
+        for(let f of activeFiles) {
+            const fileName = `${Date.now()}_${f.name}`;
+            const { data, error } = await supabase.storage.from('media').upload(fileName, f.fileObject);
             
-            const btn = document.createElement('div');
-            btn.className = 'absolute top-0 right-0 bg-red-500 text-white w-4 h-4 flex items-center justify-center text-[10px] cursor-pointer';
-            btn.innerText = 'x';
-            btn.onclick = () => { admin.activeFiles.splice(idx, 1); admin.handleFiles({files: []}); }; // Refresh
-            div.appendChild(btn);
-            area.appendChild(div);
-        });
-    },
-
-    publish: async () => {
-        const content = document.getElementById('post-content').value;
-        const category = document.getElementById('post-category').value;
-        const tag = document.getElementById('post-tag').value;
-        
-        if(!content && admin.activeFiles.length === 0) return alert("Write something!");
-
-        // UPLOAD LOGIC (LOOP)
-        let uploadedMedia = [];
-        for (const file of admin.activeFiles) {
-            const fileName = `${Date.now()}_${file.name.replace(/\s/g, '')}`;
-            const { error } = await supabase.storage.from('uploads').upload(fileName, file);
-            if (!error) {
-                const { data } = supabase.storage.from('uploads').getPublicUrl(fileName);
-                uploadedMedia.push({ 
-                    type: file.type.startsWith('image/') ? 'image' : 'pdf', 
-                    url: data.publicUrl,
-                    name: file.name 
-                });
+            if(!error) {
+                const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
+                uploadedMedia.push({ type: f.type, url: publicUrl, name: f.name });
             }
         }
-
-        let targets = [auth.profile.uni];
-        if (['company', 'gov'].includes(auth.profile.role)) {
-            targets = Array.from(document.getElementById('post-targets').selectedOptions).map(o => o.value);
-            if(targets.length === 0) targets = ['All Universities'];
-        }
-
-        const { error } = await supabase.from('posts').insert([{
-            content, category, tag, target_unis: targets,
-            author_id: auth.user.id, author_name: auth.profile.full_name, author_role: auth.profile.role,
-            media_urls: uploadedMedia // Hapa tunaweka JSON Array
-        }]);
-
-        if(error) alert(error.message);
-        else {
-            alert('Posted!');
-            utils.navTo('view-admin-dash');
-            admin.loadDash();
-        }
-    },
-
-    deletePost: async (id) => {
-        if(confirm("Delete?")) {
-            await supabase.from('posts').delete().eq('id', id);
-            admin.loadDash();
-        }
     }
-};
+
+    // 2. Insert Post to DB
+    const { error } = await supabase.from('posts').insert([{
+        creator_id: currentUser.id,
+        source_name: currentUser.name,
+        content: content,
+        category: category,
+        tag: tag,
+        uni_target: targetUni,
+        course_target: targetCourse,
+        year_target: document.getElementById('target-year-select').value||'All',
+        media_urls: uploadedMedia
+    }]);
+
+    if(!error){
+        showToast('Posted Successfully'); 
+        renderAdminPostsList(); 
+        renderFeed(); 
+        navTo('view-admin-dash'); 
+    } else {
+        showToast('Error posting: ' + error.message, 'error');
+    }
+    
+    toggleBtnLoading('btn-publish-post', false);
+}
