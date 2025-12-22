@@ -1,28 +1,31 @@
-/* APP INITIALIZATION */
+/* APP INITIALIZATION - FINAL PRODUCTION VERSION */
 
 window.onload = async () => {
-    // 1. Check Auth State
+    // 1. Check Auth State (Kuangalia kama user yupo)
+    // Tunatumia 'sb' kulingana na config.js mpya
     const hasSession = await checkSession();
     
-    // 2. Route
+    // 2. Route Logic (Kuelekeza user sehemu sahihi)
     setTimeout(() => {
         if(hasSession && currentUser){ 
-            if(currentUser.role==='student'){ 
+            if(currentUser.role === 'student'){ 
                 renderFeed(); 
-                navTo('view-home'); 
-            } else if(currentUser.role==='admin'){ 
+                navTo('view-home'); // Hii inaondoa Splash Screen na kuweka Home
+            } else if(currentUser.role === 'admin'){ 
                 updateAdminHeader(); 
                 renderAdminPostsList(); 
-                navTo('view-admin-dash'); 
+                navTo('view-admin-dash'); // Hii inaondoa Splash Screen na kuweka Admin Dash
             } else {
+                // Kama role haijulikani (Safety fallback)
                 navTo('view-intro');
             }
         } else { 
+            // Kama hajalogin, mpeleke Intro
             navTo('view-intro'); 
         }
-    }, 700);
+    }, 700); // Tunasubiri kidogo (0.7 sec) ili splash screen ionekane kidogo
 
-    // 3. Register PWA
+    // 3. Register PWA Service Worker (Kwa ajili ya speed na offline)
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
             .then(() => console.log('Service Worker Registered'))
@@ -30,14 +33,18 @@ window.onload = async () => {
     }
 };
 
-/* GLOBAL LISTENERS */
-function updateBellIndicator(){ 
-    // Logic moved to feed.js (checkMyReplies)
+/* GLOBAL LISTENERS & UTILS */
+
+// Hii inatumika kufunga Popups zote (Urgent & Support)
+function closeUrgentPopup(){ 
+    document.getElementById('modal-urgent').classList.remove('show'); 
 }
 
+// Logic ya kufungua Urgent Popup (Inaonyesha Majibu ya Admin)
 function openUrgentPopup(){ 
     const list = document.getElementById('urgent-list');
     const modal = document.getElementById('modal-urgent');
+    // window.mySupportReplies inatoka kwenye feed.js (checkMyReplies)
     const replies = window.mySupportReplies || [];
 
     list.innerHTML = '';
@@ -47,7 +54,7 @@ function openUrgentPopup(){
     } else {
         const header = document.createElement('div');
         header.className = 'font-bold text-sm text-black mb-2 px-2';
-        header.innerText = 'Support Replies';
+        header.innerText = 'Official Replies';
         list.appendChild(header);
 
         replies.forEach(r => {
@@ -67,17 +74,17 @@ function openUrgentPopup(){
 
     modal.classList.add('show');
     
-    // Ficha dot akishafungua
+    // Ficha dot nyekundu akishafungua
     const dot = document.getElementById('bell-dot');
     if(dot) dot.style.display = 'none';
 }
 
-// HII NDIO ILIKUWA INAKOSEKANA (FUNCTION YA KUFUNGA)
-function closeUrgentPopup(){ 
-    document.getElementById('modal-urgent').classList.remove('show'); 
+// Update Bell (Imehamishiwa logic kwenye feed.js, hapa tunaiacha tupu au kwa matumizi mengine)
+function updateBellIndicator(){ 
+    // Logic handled in feed.js -> checkMyReplies()
 }
-    // Ficha dot akishafungua
     const dot = document.getElementById('bell-dot');
     if(dot) dot.style.display = 'none';
 }
+
 
