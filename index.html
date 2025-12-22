@@ -3,42 +3,29 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>PalmTweets | Official Gateway</title>
+  <title>PalmTweets | Campus Utility</title>
   
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ffffff">
-  <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="apple-touch-icon" href="icons/apple-icon.png">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+  <div id="toast-container"></div>
+
   <div id="view-splash" class="screen active items-center justify-center bg-white">
     <div class="text-center fade-in">
-      <div class="brand-logo text-4xl">
+      <div class="brand-logo text-4xl mb-2">
         <span class="brand-serif">Palm</span><span class="brand-sans">tweets</span>
       </div>
+      <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Digital Campus Utility</p>
     </div>
-  </div>
-
-  <div id="view-gatekeeper" class="screen flex-col items-center justify-center p-8 bg-white text-center hidden">
-     <div class="mb-8 brand-logo text-2xl"><span class="brand-serif">Palm</span><span class="brand-sans">tweets</span></div>
-     <h1 class="text-2xl font-bold mb-4">Restricted Access</h1>
-     <p class="text-sm text-gray-500 mb-8">This network is for verified personnel only.</p>
-     
-     <div id="action-android" class="hidden w-full max-w-xs">
-        <button id="pwa-install-btn" class="btn-black flex items-center justify-center gap-2"><span>Initialize App</span> <i class="ph-bold ph-download-simple"></i></button>
-     </div>
-     <div id="action-ios" class="hidden w-full max-w-xs bg-gray-50 p-4 rounded-xl text-left border border-gray-100">
-        <p class="text-xs font-bold text-black mb-1">To ensure safety:</p>
-        <p class="text-xs text-gray-500">Tap <span class="font-bold">Share</span> below, then <span class="font-bold">Add to Home Screen</span>.</p>
-     </div>
   </div>
 
   <div id="view-intro" class="screen bg-white p-8 justify-end pb-12">
@@ -48,110 +35,77 @@
             <span class="brand-serif">Palm</span><span class="brand-sans">tweets</span>
         </div>
         <p class="text-gray-600 text-sm leading-relaxed font-medium">
-            Institutional updates, authorized opportunities from leading corporates and public bodies, and campus life & events.
+            The verified digital infrastructure for university notices and official campus updates.
         </p>
       </div>
       <div class="space-y-4 fade-in" style="animation-delay:0.2s">
-        <button onclick="utils.navTo('view-student-auth')" class="btn-black flex justify-between items-center"><span>Student Access</span> <i class="ph-bold ph-arrow-right"></i></button>
-        <button onclick="utils.navTo('view-admin-intro')" class="btn-outline text-sm">Partner / Authority Access</button>
+        <button onclick="navTo('view-student-auth')" class="btn-black flex justify-between items-center"><span>Student Access</span> <i class="ph-bold ph-arrow-right"></i></button>
+        <button onclick="navTo('view-admin-intro')" class="btn-outline text-sm">Ministry / Office Access</button>
       </div>
     </div>
   </div>
 
   <div id="view-student-auth" class="screen p-6 bg-white">
     <div class="app-container">
-      <button class="text-2xl mb-4" onclick="utils.navTo('view-intro')"><i class="ph ph-arrow-left"></i></button>
+      <button class="text-2xl mb-4" onclick="navTo('view-intro')"><i class="ph ph-arrow-left"></i></button>
       <h2 class="text-3xl font-bold mb-2 font-sans tracking-tight">Student Access</h2>
-      <p class="text-sm text-gray-500 mb-6">Create account or login using email and password.</p>
+      <p class="text-sm text-gray-500 mb-6">Create account or login to view campus updates.</p>
       <div class="space-y-3">
-        <button class="btn-black w-full" onclick="auth.openStudentSignup()">Create Account</button>
-        <button class="btn-outline w-full" onclick="utils.navTo('view-student-login')">Login</button>
+        <button class="btn-black w-full" onclick="openStudentSignup()">Create Account</button>
+        <button class="btn-outline w-full" onclick="navTo('view-student-login')">Login</button>
       </div>
     </div>
   </div>
 
   <div id="view-student-login" class="screen p-6 bg-white">
     <div class="app-container">
-      <button class="text-2xl mb-4" onclick="utils.navTo('view-student-auth')"><i class="ph ph-arrow-left"></i></button>
+      <button class="text-2xl mb-4" onclick="navTo('view-student-auth')"><i class="ph ph-arrow-left"></i></button>
       <h3 class="text-2xl font-bold mb-4">Student Login</h3>
-      <form onsubmit="auth.handleStudentLogin(event)" class="space-y-4">
+      <form onsubmit="handleStudentLogin(event)" class="space-y-4">
         <input id="login-email" class="input-clean" placeholder="Email" type="email" required />
         <input id="login-password" class="input-clean" placeholder="Password" type="password" required />
-        <button class="btn-black" type="submit">Login</button>
+        <button id="btn-student-login" class="btn-black" type="submit">Login</button>
       </form>
     </div>
   </div>
 
   <div id="view-signup" class="screen bg-white p-6">
     <div class="app-container fade-in">
-      <div class="h-12 mb-4"><button onclick="utils.navTo('view-intro')"><i class="ph ph-arrow-left text-xl"></i></button></div>
+      <div class="h-12 mb-4"><button onclick="navTo('view-intro')"><i class="ph ph-arrow-left text-xl"></i></button></div>
       <h2 class="text-3xl font-bold mb-2 tracking-tight">My Profile</h2>
-      <p class="text-sm text-gray-500 mb-6 leading-relaxed">Ensure accurate data for verified access.</p>
-      <form id="student-form" onsubmit="auth.finishStudentSignup(event)" class="space-y-5">
-        <div>
-          <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Email</label>
-          <input id="input-email" type="email" class="input-clean" placeholder="you@example.com" required />
-        </div>
-        <div>
-          <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Password</label>
-          <input id="input-password" type="password" class="input-clean" placeholder="Choose a secure password" required />
-        </div>
-        <div class="relative">
-          <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Campus</label>
-          <input id="input-uni" class="input-clean" placeholder="Search University" onkeyup="utils.filterUniList(this.value, 'uni-dropdown-student')" onfocus="utils.showUniList('uni-dropdown-student')" autocomplete="off" />
-          <div id="uni-dropdown-student" class="hidden absolute top-full left-0 right-0 bg-white shadow-xl border border-gray-100 rounded-xl mt-2 z-50 max-h-48 overflow-y-auto"></div>
-        </div>
-        <div>
-          <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Full Name</label>
-          <input id="input-name" class="input-clean" placeholder="Your Official Name" required />
-        </div>
-        
-        <div>
-            <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Course</label>
-            <input id="input-course" class="input-clean" placeholder="e.g. Computer Science" required />
-        </div>
-
-        <div>
-           <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Birth Year</label>
-           <input type="number" id="input-birth-year" class="input-clean" placeholder="e.g. 2002" min="1980" max="2010" required />
-        </div>
-        <div>
-          <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Year of Study</label>
-          <select id="input-year" class="input-clean bg-white appearance-none" required>
-            <option value="" disabled selected>Select Year</option>
-            <option value="1">Year 1</option>
-            <option value="2">Year 2</option>
-            <option value="3">Year 3</option>
-            <option value="4+">Year 4+</option>
-            <option value="Grad">Graduate</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 block">Interests</label>
-          <div class="flex flex-wrap gap-2" id="interest-chips"></div>
-        </div>
+      <p class="text-sm text-gray-500 mb-6 leading-relaxed">Strictly for verified students.</p>
+      <form id="student-form" onsubmit="finishStudentSignup(event)" class="space-y-5">
+        <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Email</label><input id="input-email" type="email" class="input-clean" placeholder="you@example.com" required /></div>
+        <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Password</label><input id="input-password" type="password" class="input-clean" placeholder="Choose a secure password" required /></div>
+        <div class="relative"><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Campus</label><input id="input-uni" class="input-clean" placeholder="Search University" onkeyup="filterUniList(this.value, 'uni-dropdown-student')" onfocus="showUniList('uni-dropdown-student')" autocomplete="off" /><div id="uni-dropdown-student" class="hidden absolute top-full left-0 right-0 bg-white shadow-xl border border-gray-100 rounded-xl mt-2 z-50 max-h-48 overflow-y-auto"></div></div>
+        <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Full Name</label><input id="input-name" class="input-clean" placeholder="Your Official Name" required /></div>
+        <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Year of Study</label><select id="input-year" class="input-clean bg-white appearance-none" required><option value="" disabled selected>Select Year</option><option value="1">Year 1</option><option value="2">Year 2</option><option value="3">Year 3</option><option value="4+">Year 4+</option><option value="Grad">Graduate</option></select></div>
+        <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Course</label><input id="input-course" class="input-clean" placeholder="e.g. Architecture" required /></div>
         <div class="flex gap-2">
           <button id="student-submit-btn" type="submit" class="btn-black mt-4">Enter Platform <i class="ph-bold ph-caret-right ml-2"></i></button>
-          <button id="student-logout-btn" type="button" class="btn-outline mt-4 hidden" onclick="auth.logout()">Logout</button>
+          <button id="student-logout-btn" type="button" class="btn-outline mt-4 hidden-by-default" onclick="openModalConfirm('Are you sure you want to logout?', handleLogout)">Logout</button>
         </div>
       </form>
     </div>
   </div>
 
   <div id="view-home" class="screen">
-    <header class="sticky top-0 bg-white/95 backdrop-blur border-b border-gray-100 z-40">
+    <header class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 z-40">
       <div class="app-container flex items-center justify-between h-16 px-4">
-        <div class="brand-logo text-xl"><span class="brand-serif">Palm</span><span class="brand-sans">tweets</span></div>
-        <div class="flex gap-4">
-          <button id="bell-btn" class="relative" onclick="feed.openUrgentPopup()"><i class="ph ph-bell text-xl"></i><span id="bell-dot" class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white hidden"></span></button>
-          <div id="me-btn" class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs cursor-pointer" onclick="auth.openProfileMenu()">Me</div>
+        <div class="brand-logo text-xl">
+            <span class="brand-serif">Palm</span><span class="brand-sans">tweets</span>
+        </div>
+        <div class="flex gap-3">
+          <button class="relative p-2" onclick="openSupportModal()"><i class="ph ph-chat-teardrop-text text-xl"></i></button>
+          <button id="bell-btn" class="relative p-2" onclick="openUrgentPopup()"><i class="ph ph-bell text-xl"></i><span id="bell-dot" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white" style="display:none"></span></button>
+          <div id="me-btn" class="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs cursor-pointer ml-1" onclick="openProfileMenu()">Me</div>
         </div>
       </div>
       <div class="app-container px-4 pb-3 overflow-x-auto whitespace-nowrap no-scrollbar flex gap-2">
-        <button onclick="feed.filter('all', this)" class="chip active">All Updates</button>
-        <button onclick="feed.filter('official', this)" class="chip">Official Notices</button>
-        <button onclick="feed.filter('opportunity', this)" class="chip">Opportunities</button>
-        <button onclick="feed.filter('event', this)" class="chip">Events</button>
+        <button onclick="filterFeed('all', this)" class="chip active">All</button>
+        <button onclick="filterFeed('official', this)" class="chip">Official</button>
+        <button onclick="filterFeed('opportunity', this)" class="chip">Opportunities</button>
+        <button onclick="filterFeed('event', this)" class="chip">Events</button>
       </div>
     </header>
     <main class="app-container bg-[#FAFAFA] min-h-screen">
@@ -163,132 +117,156 @@
   <div id="view-admin-intro" class="screen p-6 bg-white">
     <div class="app-container mx-auto">
       <div class="text-center mb-8 mt-4">
-        <div class="w-16 h-16 bg-black text-white rounded-2xl mx-auto flex items-center justify-center text-3xl mb-4"><i class="ph-fill ph-shield-check"></i></div>
+        <div class="w-16 h-16 bg-black text-white rounded-2xl mx-auto flex items-center justify-center text-3xl mb-4"><i class="ph-fill ph-gavel"></i></div>
         <h2 class="text-2xl font-bold font-brand tracking-tight">Official Gateway</h2>
-        <p class="text-gray-500 text-sm mt-3 px-2 leading-relaxed">The dedicated command center for authorized entities.</p>
+        <p class="text-gray-500 text-sm mt-3 px-2 leading-relaxed">Restricted access for University Offices and Ministries.</p>
       </div>
       <div class="space-y-4">
-        <button class="btn-black w-full" onclick="utils.navTo('view-admin-signup')">Create Official Account</button>
-        <button class="btn-outline w-full" onclick="utils.navTo('view-admin-login')">Login</button>
-        <button class="btn-outline w-full mt-2" onclick="utils.navTo('view-intro')">Back to Home</button>
+        <div class="grid grid-cols-2 gap-3 mt-4">
+          <button class="btn-black w-full" onclick="navTo('view-admin-signup')">Create Account</button>
+          <button class="btn-outline w-full" onclick="navTo('view-admin-login')">Login</button>
+        </div>
+        <button class="btn-outline w-full mt-2" onclick="navTo('view-intro')">Back to Home</button>
       </div>
     </div>
   </div>
 
   <div id="view-admin-login" class="screen p-6 bg-white">
-      <div class="app-container mx-auto">
-        <button class="text-2xl mb-4" onclick="utils.navTo('view-admin-intro')"><i class="ph ph-arrow-left"></i></button>
-        <h3 class="text-2xl font-bold mb-4">Organization Login</h3>
-        <form onsubmit="admin.handleLogin(event)" class="space-y-4">
-            <input id="admin-login-email" class="input-clean" placeholder="Email" type="email" required />
-            <input id="admin-login-password" class="input-clean" placeholder="Password" type="password" required />
-            <button class="btn-black w-full" type="submit">Login</button>
-        </form>
-      </div>
+    <div class="app-container mx-auto">
+      <button class="text-2xl mb-4" onclick="navTo('view-admin-intro')"><i class="ph ph-arrow-left"></i></button>
+      <h3 class="text-2xl font-bold mb-4">Official Login</h3>
+      <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+        <input id="admin-login-email" class="input-clean" placeholder="Email" type="email" required />
+        <input id="admin-login-password" class="input-clean" placeholder="Password" type="password" required />
+        <button id="btn-admin-login" class="btn-black w-full" type="submit">Login</button>
+      </form>
+    </div>
   </div>
 
   <div id="view-admin-signup" class="screen p-6 bg-white">
-      <div class="app-container mx-auto">
-        <button class="text-2xl mb-4" onclick="utils.navTo('view-admin-intro')"><i class="ph ph-arrow-left"></i></button>
-        <h3 class="text-2xl font-bold mb-6">Organization Details</h3>
-        <form onsubmit="admin.handleSignup(event)" class="space-y-4">
-            <div>
-                <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Account Type</label>
-                <select id="admin-type" class="input-clean mt-1 bg-white" onchange="admin.toggleUniField()" required>
-                    <option value="" disabled selected>Select Type</option>
-                    <option value="ministry">Ministry/Student Government</option>
-                    <option value="official">University Office</option>
-                    <option value="company">Company / Organization</option>
-                    <option value="gov">Government Authority</option>
-                </select>
-            </div>
-            <div>
-                <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Organization Name</label>
-                <input id="admin-name" class="input-clean mt-1" required />
-            </div>
-            <div id="admin-uni-field" class="relative">
-                <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">University</label>
-                <input id="admin-uni-input" class="input-clean" placeholder="Search" onkeyup="utils.filterUniList(this.value, 'uni-dropdown-admin')" onfocus="utils.showUniList('uni-dropdown-admin')" autocomplete="off" />
-                <div id="uni-dropdown-admin" class="hidden absolute top-full left-0 right-0 bg-white shadow-xl border border-gray-100 rounded-xl mt-2 z-50 max-h-48 overflow-y-auto"></div>
-            </div>
-            <div>
-                <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Email</label>
-                <input id="admin-email" class="input-clean mt-1" type="email" required />
-            </div>
-            <div>
-                <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Password</label>
-                <input id="admin-password" class="input-clean mt-1" type="password" required />
-            </div>
-            <button class="btn-black w-full mt-6" type="submit">Submit for Verification</button>
-        </form>
-      </div>
+    <div class="app-container mx-auto">
+      <button class="text-2xl mb-4" onclick="navTo('view-admin-intro')"><i class="ph ph-arrow-left"></i></button>
+      <h3 class="text-2xl font-bold mb-6">Official Registration</h3>
+      <form onsubmit="handleAdminSignup(event)" class="space-y-4">
+        <div>
+          <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Entity Type</label>
+          <select id="admin-type" class="input-clean mt-1 bg-white" required>
+            <option value="" disabled selected>Select Authority Type</option>
+            <option value="ministry">Student Government (Ministry)</option>
+            <option value="official">University Office</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Office Name</label>
+          <input id="admin-name" class="input-clean mt-1" placeholder="e.g. Dean of Students" required />
+        </div>
+        <div id="admin-uni-field" class="relative">
+          <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">University</label>
+          <input id="admin-uni-input" class="input-clean" placeholder="Search University" onkeyup="filterUniList(this.value, 'uni-dropdown-admin')" onfocus="showUniList('uni-dropdown-admin')" autocomplete="off" />
+          <div id="uni-dropdown-admin" class="hidden absolute top-full left-0 right-0 bg-white shadow-xl border border-gray-100 rounded-xl mt-2 z-50 max-h-48 overflow-y-auto"></div>
+        </div>
+        <div>
+          <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Official Email</label>
+          <input id="admin-email" class="input-clean mt-1" type="email" placeholder="official@uni.ac.tz" required />
+        </div>
+        <div>
+          <label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Password</label>
+          <input id="admin-password" class="input-clean mt-1" type="password" placeholder="Create Password" required />
+        </div>
+        <button id="btn-admin-signup" class="btn-black w-full mt-6" type="submit">Verify & Create</button>
+      </form>
+    </div>
   </div>
 
   <div id="view-admin-dash" class="screen bg-[#FAFAFA]">
-      <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
-        <div class="app-container mx-auto flex items-center justify-between h-16 px-4">
-            <div class="flex items-center gap-3">
-                <div id="dash-avatar" class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-bold overflow-hidden"><span id="dash-avatar-letter">A</span></div>
-                <div><div id="dash-name" class="font-bold text-sm">...</div><div class="text-xs text-green-600 flex items-center gap-1"><i class="ph-fill ph-seal-check"></i> Verified</div></div>
-            </div>
-            <div class="flex gap-2"><button onclick="auth.logout()" class="p-2 bg-gray-50 rounded-full text-red-500 hover:bg-red-50"><i class="ph ph-sign-out"></i></button></div>
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
+      <div class="app-container mx-auto flex items-center justify-between h-16 px-4">
+        <div class="flex items-center gap-3">
+          <div id="dash-avatar" class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-bold overflow-hidden"><img id="dash-avatar-img" alt="" style="display:none" /><span id="dash-avatar-letter"></span></div>
+          <div><div id="dash-name" class="font-bold text-sm">Org Name</div><div id="dash-verified" class="text-xs text-green-600 flex items-center gap-1"><i class="ph-fill ph-seal-check"></i> Official Account</div></div>
         </div>
-      </header>
-      <main class="app-container mx-auto p-4 pb-24">
-        <div class="bg-black text-white rounded-2xl p-5 mt-6 flex justify-between items-center cursor-pointer shadow-lg active:scale-95 transition-transform" onclick="admin.initPost()">
-            <div><div class="font-bold text-lg">Create Update</div><div class="text-gray-400 text-sm">Post to student feeds</div></div>
-            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center"><i class="ph-bold ph-plus text-xl"></i></div>
+        <div class="flex gap-2">
+            <button onclick="openAdminEdit()" class="p-2 bg-gray-50 rounded-full hover:bg-gray-100"><i class="ph ph-gear"></i></button>
+            <button onclick="openModalConfirm('Log out from Official Account?', handleLogout)" class="p-2 bg-gray-50 rounded-full text-red-500 hover:bg-red-50"><i class="ph ph-sign-out"></i></button>
         </div>
-        <div class="mt-8">
-            <h4 class="text-xs font-bold uppercase text-gray-400 tracking-wider">Recent History</h4>
-            <div id="admin-posts-list" class="mt-3 space-y-3"></div>
-        </div>
-      </main>
+      </div>
+    </header>
+    <main class="app-container mx-auto p-4 pb-24">
+      <div class="bg-black text-white rounded-2xl p-5 mt-2 flex justify-between items-center cursor-pointer shadow-lg active:scale-95 transition-transform" onclick="initNewPost()"><div><div class="font-bold text-lg">Create Notice</div><div class="text-gray-400 text-sm">Broadcast to campus feed</div></div><div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center"><i class="ph-bold ph-plus text-xl"></i></div></div>
+      
+      <div class="mt-6">
+         <h4 class="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2">Support Inbox</h4>
+         <div id="admin-support-inbox" class="bg-white rounded-xl border border-gray-100 p-4 text-center text-sm text-gray-500">
+             <i class="ph ph-spinner animate-spin"></i> Loading...
+         </div>
+      </div>
+
+      <div class="mt-8"><h4 class="text-xs font-bold uppercase text-gray-400 tracking-wider">Recent Notices</h4><div id="admin-posts-list" class="mt-3 space-y-3"></div></div>
+    </main>
   </div>
 
   <div id="view-admin-post" class="screen p-4 bg-white">
-      <div class="app-container mx-auto">
-        <header class="flex items-center justify-between mb-4">
-            <button onclick="utils.navTo('view-admin-dash')" class="text-2xl"><i class="ph ph-x"></i></button>
-            <h3 class="font-bold">New Update</h3>
-            <div class="flex gap-2"><button class="bg-black text-white px-4 py-2 rounded-full text-sm font-bold" onclick="admin.publish()">Post</button></div>
-        </header>
-        <textarea id="post-content" class="input-clean w-full h-32 resize-none" placeholder="What's happening?"></textarea>
-        
-        <div class="mt-4 space-y-4">
-            <div><label class="text-xs font-bold uppercase text-gray-400 block mb-1">Category</label>
-                <select id="post-category" class="input-clean py-2 bg-white">
-                    <option value="official">Official Notice</option>
-                    <option value="opportunity">Opportunity</option>
-                    <option value="event">Event</option>
-                </select>
-            </div>
-            <div><label class="text-xs font-bold uppercase text-gray-400 block mb-2">Priority</label>
-                <div class="grid grid-cols-3 gap-2">
-                    <button type="button" class="urgency-btn active text-sm" onclick="admin.setUrgency(this,'INFO')">Info</button>
-                    <button type="button" class="urgency-btn text-sm" onclick="admin.setUrgency(this,'IMPORTANT')">Important</button>
-                    <button type="button" class="urgency-btn text-sm" onclick="admin.setUrgency(this,'URGENT')">Urgent</button>
+    <div class="app-container mx-auto">
+      <header class="flex items-center justify-between mb-4"><button onclick="navTo('view-admin-dash')" class="text-2xl"><i class="ph ph-x"></i></button><h3 class="font-bold" id="post-screen-title">New Update</h3><div class="flex gap-2"><button id="btn-publish-post" class="bg-black text-white px-4 py-2 rounded-full text-sm font-bold" onclick="handlePublishPost()">Post</button></div></header>
+      <textarea id="post-content" class="input-clean w-full h-32 resize-none" placeholder="Type official notice here..."></textarea>
+      <div id="media-preview" class="hidden mt-3 border border-gray-100 rounded-xl p-2"><div id="media-list" class="grid grid-cols-2 gap-2 mb-2"></div></div>
+      <div id="file-preview" class="hidden mt-3 bg-gray-50 border border-gray-200 p-3 rounded-xl flex flex-col gap-2"><div id="file-list" class="flex flex-col gap-1"></div></div>
+      <div class="mt-4 pb-4 border-b border-gray-100"><input id="file-input" type="file" class="hidden" onchange="handleFileSelect(this)" multiple /><div class="flex gap-3"><button class="upload-btn flex-1 text-sm" onclick="triggerUpload('image')"><i class="ph-fill ph-image text-lg"></i> Add Photos</button><button class="upload-btn flex-1 text-sm" onclick="triggerUpload('pdf')"><i class="ph-fill ph-file-pdf text-lg"></i> Attach PDF</button></div></div>
+      <div class="mt-4 space-y-4">
+        <div>
+            <label class="text-xs font-bold uppercase text-gray-400 block mb-1">Category</label>
+            <select id="post-category" class="input-clean py-2 bg-white"><option value="official">Official Notice</option><option value="opportunity">Opportunity</option><option value="event">Event</option></select>
+        </div>
+        <div>
+            <label class="text-xs font-bold uppercase text-gray-400 block mb-2">Priority Level</label>
+            <div class="grid grid-cols-3 gap-2"><button type="button" class="urgency-btn active text-sm" onclick="setUrgency(this,'INFO')">Info</button><button type="button" class="urgency-btn text-sm" onclick="setUrgency(this,'IMPORTANT')">Important</button><button type="button" class="urgency-btn text-sm" onclick="setUrgency(this,'URGENT')">Urgent</button></div><input id="post-tag" type="hidden" value="INFO" />
+        </div>
+        <div>
+            <label class="text-xs font-bold uppercase tracking-wider text-gray-400 block mb-1">Target Filters</label>
+            <div class="space-y-2">
+                <div class="flex gap-2">
+                    <select id="target-year-select" class="input-clean py-2 text-sm bg-white"><option value="All">All Years</option><option value="1">Year 1</option><option value="2">Year 2</option><option value="3">Year 3</option><option value="4+">Year 4+</option><option value="Grad">Graduate</option></select>
+                    <input id="target-course" class="input-clean py-2 text-sm" placeholder="Target Course (Optional)" />
                 </div>
-                <input id="post-tag" type="hidden" value="INFO" />
             </div>
         </div>
       </div>
+    </div>
   </div>
 
-  <div id="modal-comments" class="overlay items-end" onclick="feed.closeComments()">
-      <div class="sheet-bottom animate-slide-up" onclick="event.stopPropagation()">
-          <div class="p-4 border-b border-gray-100 flex justify-between items-center">
-              <div class="font-bold text-sm">Comments <span id="comment-header-count" class="text-gray-400 font-normal">(0)</span></div>
-              <button onclick="feed.closeComments()"><i class="ph ph-x text-xl"></i></button>
+  <div id="modal-admin-edit" class="overlay" onclick="closeAdminEdit()"><div class="bg-white rounded-t-2xl p-6 w-full max-w-md animate-slide-up" onclick="event.stopPropagation()"><h3 class="font-bold mb-3 text-lg">Edit Profile</h3><label class="text-xs text-gray-400 uppercase font-bold">Organization name</label><input id="edit-org-name" class="input-clean mt-1 mb-4" /><div class="mt-6 space-y-2"><button class="btn-black" onclick="saveAdminProfile()">Save Changes</button><button class="btn-outline border-none text-red-500" onclick="closeAdminEdit()">Cancel</button></div></div></div>
+  
+  <div id="modal-report" class="overlay" onclick="closeReport()"><div class="bg-white rounded-2xl p-6 w-[90%] max-w-sm m-auto animate-slide-up shadow-2xl" onclick="event.stopPropagation()"><div class="text-center mb-4"><i class="ph-fill ph-warning-circle text-4xl text-orange-500 mb-2"></i><h3 class="font-bold text-lg">Report Post</h3><p class="text-sm text-gray-500">Why are you reporting this content?</p></div><textarea id="report-reason" class="input-clean h-24 text-sm resize-none mb-4" placeholder="Type reason here..."></textarea><div class="flex gap-2"><button class="btn-black py-3 text-sm" onclick="submitReport()">Submit Report</button><button class="btn-outline py-3 text-sm border-none" onclick="closeReport()">Cancel</button></div></div></div>
+  
+  <div id="modal-comments" class="overlay items-end" onclick="closeComments()"><div class="sheet-bottom animate-slide-up" onclick="event.stopPropagation()"><div class="p-4 border-b border-gray-100 flex justify-between items-center"><div class="font-bold text-sm">Comments <span id="comment-header-count" class="text-gray-400 font-normal">(0)</span></div><button onclick="closeComments()"><i class="ph ph-x text-xl"></i></button></div><div id="comments-list" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"></div><div class="p-3 border-t border-gray-100 bg-white flex gap-2 items-center pb-6"><input id="comment-input" class="flex-1 bg-gray-100 rounded-full px-4 py-3 text-sm outline-none" placeholder="Add a comment..." /><button id="comment-post-btn" class="text-black font-bold text-sm p-2" onclick="postComment()">Post</button></div></div></div>
+  
+  <div id="modal-urgent" class="overlay" onclick="closeUrgentPopup()"><div class="bg-white rounded-t-2xl p-6 w-full max-w-md animate-slide-up" onclick="event.stopPropagation()"><div class="flex items-center justify-between mb-3"><h3 class="font-bold text-lg">Urgent Updates</h3><button onclick="closeUrgentPopup()" class="text-gray-400"><i class="ph ph-x"></i></button></div><div id="urgent-list" style="max-height:60vh;overflow:auto"></div></div></div>
+  
+  <div id="modal-support" class="overlay" onclick="closeSupportModal()"><div class="bg-white rounded-t-2xl p-6 w-full max-w-md animate-slide-up" onclick="event.stopPropagation()"><div class="flex items-center justify-between mb-3"><h3 class="font-bold text-lg">Official Support</h3><button onclick="closeSupportModal()" class="text-gray-400"><i class="ph ph-x"></i></button></div><p class="text-xs text-gray-500 mb-4">Send a formal message to your student government or admin office.</p>
+  <label class="text-xs font-bold uppercase text-gray-400 block mb-1">To (Department)</label>
+  <select id="support-dept" class="input-clean py-2 bg-white mb-3"><option>Ministry of Loans (HESLB)</option><option>Ministry of Accommodation</option><option>Dean of Students</option><option>Academic Affairs</option></select>
+  <textarea id="support-msg" class="input-clean h-32 resize-none mb-4" placeholder="Describe your issue..."></textarea><button id="btn-support-send" class="btn-black w-full" onclick="sendSupport()">Send Message</button></div></div>
+
+  <div id="modal-confirm" class="overlay overlay-center" onclick="closeModalConfirm()">
+      <div class="modal-box animate-slide-up" onclick="event.stopPropagation()">
+          <div class="mb-4 text-center">
+             <i class="ph-duotone ph-sign-out text-4xl text-gray-800"></i>
           </div>
-          <div id="comments-list" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"></div>
-          <div class="p-3 border-t border-gray-100 bg-white flex gap-2 items-center pb-6">
-              <input id="comment-input" class="flex-1 bg-gray-100 rounded-full px-4 py-3 text-sm outline-none" placeholder="Add a comment..." />
-              <button class="text-black font-bold text-sm p-2" onclick="feed.postComment()">Post</button>
+          <h3 class="font-bold text-lg mb-2">Confirm Action</h3>
+          <p id="modal-confirm-text" class="text-gray-500 text-sm mb-6">Are you sure?</p>
+          <div class="flex gap-3">
+              <button class="btn-outline border-0 bg-gray-100 text-black" onclick="closeModalConfirm()">Cancel</button>
+              <button id="modal-confirm-btn" class="btn-black">Yes, Proceed</button>
           </div>
       </div>
   </div>
 
-  <script type="module" src="js/app.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/feed.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/app.js"></script>
+
 </body>
 </html>
