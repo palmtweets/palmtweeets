@@ -7,23 +7,24 @@ async function renderFeed(filter='all'){
     const container=document.getElementById('feed-list'); 
     container.innerHTML='<div class="p-8 text-center"><i class="ph ph-spinner animate-spin text-2xl"></i></div>';
     
-    // Fetch Posts from Supabase
-    let query = supabase.from('posts').select(`*, creator:profiles(name, admin_type, role, avatar_url)`).order('created_at', { ascending: false });
+    // Fetch Posts using 'sb'
+    let query = sb.from('posts').select(`*, creator:profiles(name, admin_type, role, avatar_url)`).order('created_at', { ascending: false });
     
     if(filter !== 'all') query = query.eq('category', filter);
 
     const { data, error } = await query;
-    if(error) return showToast('Error loading feed', 'error');
+    if(error) {
+        console.log(error); // Debugging
+        return showToast('Error loading feed', 'error');
+    }
     
     posts = data;
     container.innerHTML = '';
 
-    // Logic for filtering by Uni/Course for students
     const visiblePosts = posts.filter(post => {
         if(currentUser && currentUser.role === 'student') {
             if(post.uni_target && post.uni_target !== 'All' && post.uni_target !== currentUser.uni) return false;
-            // Course filtering logic (Basic partial match)
-            if(post.course_target && post.course_target.trim() !== '' && !currentUser.course.toLowerCase().includes(post.course_target.toLowerCase())) return true; // Show all if course not strict, or implement stricter logic
+            if(post.course_target && post.course_target.trim() !== '' && !currentUser.course.toLowerCase().includes(post.course_target.toLowerCase())) return true; 
         }
         return true;
     });
@@ -42,18 +43,16 @@ async function renderFeed(filter='all'){
         }
         
         let badgeClass='badge-black'; 
-        // Badge logic based on admin_type
-        if(post.creator.admin_type === 'official') badgeClass='badge-green';
-        if(post.creator.role === 'system') badgeClass = 'badge-gold';
+        if(post.creator?.admin_type === 'official') badgeClass='badge-green';
+        if(post.creator?.role === 'system') badgeClass = 'badge-gold';
 
         let urgencyHTML=''; 
         if(post.tag==='URGENT') urgencyHTML=`<span class="inline-block bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded ml-2">URGENT</span>`; 
         else if(post.tag==='IMPORTANT') urgencyHTML=`<span class="inline-block bg-red-50 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded ml-2">IMPORTANT</span>`;
         
         let avatarHTML=`<div class="w-10 h-10 rounded-lg bg-gray-900 text-white flex items-center justify-center font-bold text-lg">${(post.source_name||'?').charAt(0)}</div>`; 
-        if(post.creator.avatar_url) avatarHTML=`<img src="${post.creator.avatar_url}" class="w-10 h-10 rounded-lg object-cover bg-gray-100">`;
+        if(post.creator?.avatar_url) avatarHTML=`<img src="${post.creator.avatar_url}" class="w-10 h-10 rounded-lg object-cover bg-gray-100">`;
         
-        // Media Logic
         let mediaHTML=''; 
         let mediaUrls = post.media_urls || [];
         if(mediaUrls.length > 0){ 
@@ -65,7 +64,6 @@ async function renderFeed(filter='all'){
             } else { 
                 const idx = currentImageIndex[post.id]||0; 
                 const m = mediaUrls[idx]; 
-                // Simple Carousel UI
                 mediaHTML = `<div class="mt-3 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 carousel-wrap">
                     <img src="${m.url}" class="w-full aspect-portrait" loading="lazy">
                     <div class="carousel-arrow carousel-left" onclick="showPrevImage(${post.id})">&#8249;</div>
@@ -112,13 +110,12 @@ function filterFeed(category, btn){
     renderFeed(category); 
 }
 
-/* CAROUSEL LOGIC */
 function initCarouselForPost(postId, count){ if(typeof currentImageIndex[postId] === 'undefined') currentImageIndex[postId]=0; }
 function showPrevImage(postId){ 
     const post = posts.find(p=>p.id===postId); 
     if(!post || !post.media_urls) return; 
     currentImageIndex[postId] = (currentImageIndex[postId] - 1 + post.media_urls.length) % post.media_urls.length; 
-    renderFeed(); // Re-render to show change
+    renderFeed(); 
 }
 function showNextImage(postId){ 
     const post = posts.find(p=>p.id===postId); 
@@ -127,9 +124,7 @@ function showNextImage(postId){
     renderFeed(); 
 }
 
-/* INTERACTION LOGIC */
 async function handleLike(btn, postId){ 
-    // Optimistic UI Update
     const icon=btn.querySelector('i'); 
     const countSpan=btn.querySelector('span'); 
     let current = parseInt(countSpan.innerText.replace('k','000')) || 0;
@@ -137,13 +132,11 @@ async function handleLike(btn, postId){
     if(icon.classList.contains('ph-heart')){ 
         icon.classList.remove('ph-heart'); icon.classList.add('ph-fill','ph-heart','text-red-500'); btn.classList.add('text-red-500'); 
         countSpan.innerText = formatCount(current + 1);
-        // DB Update
-        await supabase.rpc('increment_likes', { row_id: postId }); 
+        await sb.rpc('increment_likes', { row_id: postId }); 
     } else { 
         icon.classList.remove('ph-fill','ph-heart','text-red-500'); icon.classList.add('ph-heart'); btn.classList.remove('text-red-500'); 
         countSpan.innerText = formatCount(current - 1);
-        // DB Update
-        await supabase.rpc('decrement_likes', { row_id: postId }); 
+        await sb.rpc('decrement_likes', { row_id: postId }); 
     } 
 }
 
@@ -155,8 +148,7 @@ async function openComments(postId){
     
     document.getElementById('modal-comments').classList.add('show');
     
-    // Fetch Comments
-    const { data: comments } = await supabase.from('comments').select('*').eq('post_id', postId).order('created_at', {ascending: true});
+    const { data: comments } = await sb.from('comments').select('*').eq('post_id', postId).order('created_at', {ascending: true});
     
     countHeader.innerText = `(${comments.length})`; 
     list.innerHTML='';
@@ -182,7 +174,7 @@ async function postComment(){
     const text=input.value.trim(); 
     if(!text) return; 
     
-    const { error } = await supabase.from('comments').insert([{
+    const { error } = await sb.from('comments').insert([{
         post_id: currentPostIdForComments,
         user_id: currentUser.id,
         user_name: currentUser.name,
@@ -191,14 +183,13 @@ async function postComment(){
 
     if(!error) {
         input.value=''; 
-        openComments(currentPostIdForComments); // Reload comments
+        openComments(currentPostIdForComments); 
         showToast('Comment Added'); 
     } else {
         showToast('Failed to comment', 'error');
     }
 }
 
-/* REPORT */
 function openReport(postId){ document.getElementById('modal-report').classList.add('show'); document.getElementById('report-reason').value=''; }
 function closeReport(){ document.getElementById('modal-report').classList.remove('show'); }
 function submitReport(){ 
@@ -208,7 +199,6 @@ function submitReport(){
     closeReport(); 
 }
 
-/* STUDENT SUPPORT */
 function openSupportModal(){ document.getElementById('modal-support').classList.add('show'); document.getElementById('support-msg').value=''; }
 function closeSupportModal(){ document.getElementById('modal-support').classList.remove('show'); }
 async function sendSupport(){ 
@@ -218,7 +208,7 @@ async function sendSupport(){
     
     toggleBtnLoading('btn-support-send', true);
     
-    const { error } = await supabase.from('messages').insert([{
+    const { error } = await sb.from('messages').insert([{
         sender_id: currentUser.id,
         department: dept,
         content: msg
