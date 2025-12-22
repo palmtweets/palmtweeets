@@ -1,8 +1,9 @@
-/* ADMIN DASHBOARD LOGIC */
+/* ADMIN DASHBOARD LOGIC (FULL) */
 
 let activeFiles = [];
 let editingPostId = null;
 
+// 1. MAIN FUNCTION: Inaitwa Admin akilogin
 async function renderAdminPostsList(){ 
     const list = document.getElementById('admin-posts-list'); 
     const totalLikesEl = document.getElementById('dash-total-likes');
@@ -12,7 +13,7 @@ async function renderAdminPostsList(){
     
     if(!currentUser) return; 
 
-    // Fetch Posts
+    // A. FETCH POSTS & ANALYTICS
     const { data: myPosts, error } = await sb
         .from('posts')
         .select('*')
@@ -26,12 +27,14 @@ async function renderAdminPostsList(){
         if(totalLikesEl) totalLikesEl.innerText = '0';
         if(totalPostsEl) totalPostsEl.innerText = '0';
     } else {
+        // Real Analytics
         const totalPosts = myPosts.length;
         const totalLikes = myPosts.reduce((sum, post) => sum + (post.likes_count || 0), 0);
 
         if(totalLikesEl) totalLikesEl.innerText = formatCount(totalLikes);
         if(totalPostsEl) totalPostsEl.innerText = totalPosts;
 
+        // Render Posts
         myPosts.forEach(p => { 
             const div = document.createElement('div'); 
             div.className = 'bg-white p-3 border border-gray-100 rounded-lg flex justify-between items-center'; 
@@ -54,16 +57,18 @@ async function renderAdminPostsList(){
         }); 
     }
 
+    // B. FETCH MESSAGES (SUPPORT INBOX)
     loadSupportMessages();
 }
 
+// 2. FUNCTION YA KUVUTA UJUMBE WA WANAFUNZI
 async function loadSupportMessages() {
     const inboxEl = document.getElementById('admin-support-inbox');
     if(!inboxEl) return;
 
     inboxEl.innerHTML = '<div class="py-4 text-center"><i class="ph ph-spinner animate-spin"></i> Checking inbox...</div>';
     
-    // Fetch Messages
+    // Vuta meseji zote (Katika production, ungefilter kwa department)
     const { data: msgs, error } = await sb
         .from('messages')
         .select('*, sender:profiles(name, year, course)') 
@@ -79,6 +84,14 @@ async function loadSupportMessages() {
     listContainer.className = 'flex flex-col gap-2 max-h-60 overflow-y-auto';
 
     msgs.forEach(msg => {
+        // Kama imesha jibiwa, onyesha "Replied"
+        const isReplied = msg.reply_content ? true : false;
+        
+        // Button Logic: Tunatumia ID ya message kujibu
+        const replyBtn = isReplied 
+            ? `<span class="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded font-bold"><i class="ph-fill ph-check"></i> Replied</span>` 
+            : `<button onclick="replyToStudent(${msg.id}, '${msg.sender?.name || 'Student'}')" class="text-[10px] font-bold border border-gray-300 px-2 py-1 rounded bg-white hover:bg-black hover:text-white transition-colors">Reply</button>`;
+
         const item = document.createElement('div');
         item.className = 'text-left p-3 bg-gray-50 border border-gray-100 rounded-lg';
         item.innerHTML = `
@@ -87,15 +100,38 @@ async function loadSupportMessages() {
                 <span class="text-[10px] text-gray-400">${new Date(msg.created_at).toLocaleDateString()}</span>
             </div>
             <div class="text-xs font-bold text-gray-400 uppercase mb-1">To: ${msg.department}</div>
-            <p class="text-sm text-gray-700 leading-snug">${msg.content}</p>
-            <div class="mt-2 flex justify-end">
-                <button onclick="alert('Reply feature coming next update!')" class="text-[10px] font-bold border border-gray-300 px-2 py-1 rounded bg-white hover:bg-black hover:text-white transition-colors">Reply</button>
+            <p class="text-sm text-gray-700 leading-snug mb-2">${msg.content}</p>
+            ${isReplied ? `<div class="bg-gray-100 p-2 rounded text-xs text-gray-600 mb-2 border-l-2 border-black"><strong>You:</strong> ${msg.reply_content}</div>` : ''}
+            <div class="flex justify-end">
+                ${replyBtn}
             </div>
         `;
         listContainer.appendChild(item);
     });
     
     inboxEl.appendChild(listContainer);
+}
+
+// 3. REPLY FUNCTION (Hii inatuma jibu Database)
+async function replyToStudent(msgId, studentName) {
+    const replyText = prompt(`Reply to ${studentName}:`);
+    if(!replyText || replyText.trim() === "") return;
+
+    // Update message table with reply
+    const { error } = await sb
+        .from('messages')
+        .update({ 
+            reply_content: replyText, 
+            replied_at: new Date().toISOString() 
+        })
+        .eq('id', msgId);
+
+    if(!error){
+        showToast('Reply sent successfully!');
+        loadSupportMessages(); // Refresh inbox kuonyesha jibu
+    } else {
+        showToast('Failed to reply: ' + error.message, 'error');
+    }
 }
 
 async function deletePost(id){ 
@@ -110,6 +146,7 @@ async function deletePost(id){
     }
 }
 
+/* POST CREATION LOGIC */
 function initNewPost(){ 
     editingPostId=null; 
     document.getElementById('post-screen-title').innerText='New Update'; 
@@ -188,6 +225,7 @@ async function handlePublishPost(){
 
     toggleBtnLoading('btn-publish-post', true);
 
+    // 1. Upload Files to Supabase Storage
     let uploadedMedia = [];
     if(activeFiles.length > 0) {
         for(let f of activeFiles) {
@@ -205,6 +243,7 @@ async function handlePublishPost(){
         }
     }
 
+    // 2. Insert Post to DB
     const { error } = await sb.from('posts').insert([{
         creator_id: currentUser.id,
         source_name: currentUser.name,
