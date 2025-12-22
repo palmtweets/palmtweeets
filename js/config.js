@@ -1,9 +1,23 @@
-export const SUPABASE_URL = 'https://nizxfcmrruzdduseudwj.supabase.co';
-export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5penhmY21ycnV6ZGR1c2V1ZHdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyOTU4ODUsImV4cCI6MjA4MTg3MTg4NX0.Ys5aVrCnNC3ur-24HixBDMlybbY5dNkCHFj5dYMiJ5I';
+// Supabase Configuration
+// BADILISHA HIZI NA ZA KWAKO KUTOKA SUPABASE DASHBOARD
+const SUPABASE_URL = 'https://kszlwvapzsqwxylpeelt.supabase.co'; 
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtzemx3dmFwenNxd3h5bHBlZWx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYzODA0MDUsImV4cCI6MjA4MTk1NjQwNX0.qx6zB3KUcg1ZbJOJ6eoPh4XWDrvpaNFdsA-WT72niPs';
 
-export const UNIVERSITIES = [
+// Initialize Supabase Client
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Global Constants
+const universities = [
     "University of Dar es Salaam (UDSM)", 
     "University of Dodoma (UDOM)", 
-    "IFM", "Ardhi University", "Mzumbe", 
-    "SUA", "DIT", "St. Joseph", "Mwl.Nyerere University"
+    "IFM", 
+    "Ardhi University", 
+    "Mzumbe", 
+    "SUA", 
+    "DIT", 
+    "St. Joseph", 
+    "Tumaini University"
 ];
+
+// Global State
+let currentUser = null;
