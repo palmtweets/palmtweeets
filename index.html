@@ -14,7 +14,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
-  
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -265,7 +264,9 @@
   
   <div id="modal-support" class="overlay" onclick="closeSupportModal()"><div class="bg-white rounded-t-2xl p-6 w-full max-w-md animate-slide-up" onclick="event.stopPropagation()"><div class="flex items-center justify-between mb-3"><h3 class="font-bold text-lg">Official Support</h3><button onclick="closeSupportModal()" class="text-gray-400"><i class="ph ph-x"></i></button></div><p class="text-xs text-gray-500 mb-4">Send a formal message to your student government or admin office.</p>
   <label class="text-xs font-bold uppercase text-gray-400 block mb-1">To (Department)</label>
-  <select id="support-dept" class="input-clean py-2 bg-white mb-3"><option>Ministry of Loans (HESLB)</option><option>Ministry of Accommodation</option><option>Dean of Students</option><option>Academic Affairs</option></select>
+  <select id="support-dept" class="input-clean py-2 bg-white mb-3">
+      <option value="" disabled selected>Loading offices...</option>
+  </select>
   <textarea id="support-msg" class="input-clean h-32 resize-none mb-4" placeholder="Describe your issue..."></textarea><button id="btn-support-send" class="btn-black w-full" onclick="sendSupport()">Send Message</button></div></div>
 
   <div id="modal-confirm" class="overlay overlay-center" onclick="closeModalConfirm()">
