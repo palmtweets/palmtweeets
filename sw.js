@@ -1,5 +1,5 @@
 // BADILISHA HII KILA UKIONGEZA FEATURES MPYA
-const CACHE_NAME = 'palmtweets-v-fixed-likes'; 
+const CACHE_NAME = 'palmtweets-v-fixed-likes2'; 
 
 const ASSETS = [
   './',
@@ -53,4 +53,5 @@ self.addEventListener('fetch', (e) => {
     })
   );
 });
+
 
