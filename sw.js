@@ -1,6 +1,6 @@
 // BADILISHA HAPA KILA UNAPOFANYA MABADILIKO MAKUBWA
 // Mfano: Leo weka v100, kesho ukibadili picha weka v101
-const CACHE_NAME = 'palmtweets-v100';
+const CACHE_NAME = 'palmtweets-v106';
 
 const ASSETS = [
   './',
@@ -57,5 +57,6 @@ self.addEventListener('fetch', (e) => {
     caches.match(e.request).then((response) => response || fetch(e.request))
   );
 });
+
 
 
