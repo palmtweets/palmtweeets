@@ -71,3 +71,13 @@ function openUrgentPopup(){
     const dot = document.getElementById('bell-dot');
     if(dot) dot.style.display = 'none';
 }
+
+// HII NDIO ILIKUWA INAKOSEKANA (FUNCTION YA KUFUNGA)
+function closeUrgentPopup(){ 
+    document.getElementById('modal-urgent').classList.remove('show'); 
+}
+    // Ficha dot akishafungua
+    const dot = document.getElementById('bell-dot');
+    if(dot) dot.style.display = 'none';
+}
+
