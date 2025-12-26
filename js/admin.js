@@ -1,9 +1,8 @@
-/* ADMIN DASHBOARD LOGIC (FULL) */
+/* ADMIN DASHBOARD LOGIC (VIDEO SUPPORT ADDED) */
 
 let activeFiles = [];
 let editingPostId = null;
 
-// 1. MAIN FUNCTION: Inaitwa Admin akilogin
 async function renderAdminPostsList(){ 
     const list = document.getElementById('admin-posts-list'); 
     const totalLikesEl = document.getElementById('dash-total-likes');
@@ -13,7 +12,6 @@ async function renderAdminPostsList(){
     
     if(!currentUser) return; 
 
-    // A. FETCH POSTS & ANALYTICS
     const { data: myPosts, error } = await sb
         .from('posts')
         .select('*')
@@ -27,19 +25,24 @@ async function renderAdminPostsList(){
         if(totalLikesEl) totalLikesEl.innerText = '0';
         if(totalPostsEl) totalPostsEl.innerText = '0';
     } else {
-        // Real Analytics
         const totalPosts = myPosts.length;
         const totalLikes = myPosts.reduce((sum, post) => sum + (post.likes_count || 0), 0);
 
         if(totalLikesEl) totalLikesEl.innerText = formatCount(totalLikes);
         if(totalPostsEl) totalPostsEl.innerText = totalPosts;
 
-        // Render Posts
         myPosts.forEach(p => { 
             const div = document.createElement('div'); 
             div.className = 'bg-white p-3 border border-gray-100 rounded-lg flex justify-between items-center'; 
             
-            const displayContent = p.content ? p.content : (p.media_urls && p.media_urls.length > 0 ? '📷 Image Post' : 'No content');
+            // Smart Preview Text
+            let typeLabel = 'Text';
+            if(p.media_urls && p.media_urls.length > 0) {
+                if(p.media_urls[0].type === 'video') typeLabel = '🎥 Video';
+                else if(p.media_urls[0].type === 'image') typeLabel = '📷 Image';
+                else typeLabel = '📎 File';
+            }
+            const displayContent = p.content ? p.content : `${typeLabel} Post`;
 
             div.innerHTML = `
               <div class="flex-1 overflow-hidden">
@@ -56,19 +59,16 @@ async function renderAdminPostsList(){
             list.appendChild(div); 
         }); 
     }
-
-    // B. FETCH MESSAGES (SUPPORT INBOX)
     loadSupportMessages();
 }
 
-// 2. FUNCTION YA KUVUTA UJUMBE WA WANAFUNZI
 async function loadSupportMessages() {
     const inboxEl = document.getElementById('admin-support-inbox');
     if(!inboxEl) return;
 
     inboxEl.innerHTML = '<div class="py-4 text-center"><i class="ph ph-spinner animate-spin"></i> Checking inbox...</div>';
     
-    // Vuta meseji zote (Katika production, ungefilter kwa department)
+    // Vuta meseji (Sasa zitaonekana kulingana na SQL Policy mpya)
     const { data: msgs, error } = await sb
         .from('messages')
         .select('*, sender:profiles(name, year, course)') 
@@ -84,10 +84,7 @@ async function loadSupportMessages() {
     listContainer.className = 'flex flex-col gap-2 max-h-60 overflow-y-auto';
 
     msgs.forEach(msg => {
-        // Kama imesha jibiwa, onyesha "Replied"
         const isReplied = msg.reply_content ? true : false;
-        
-        // Button Logic: Tunatumia ID ya message kujibu
         const replyBtn = isReplied 
             ? `<span class="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded font-bold"><i class="ph-fill ph-check"></i> Replied</span>` 
             : `<button onclick="replyToStudent(${msg.id}, '${msg.sender?.name || 'Student'}')" class="text-[10px] font-bold border border-gray-300 px-2 py-1 rounded bg-white hover:bg-black hover:text-white transition-colors">Reply</button>`;
@@ -112,23 +109,18 @@ async function loadSupportMessages() {
     inboxEl.appendChild(listContainer);
 }
 
-// 3. REPLY FUNCTION (Hii inatuma jibu Database)
 async function replyToStudent(msgId, studentName) {
     const replyText = prompt(`Reply to ${studentName}:`);
     if(!replyText || replyText.trim() === "") return;
 
-    // Update message table with reply
     const { error } = await sb
         .from('messages')
-        .update({ 
-            reply_content: replyText, 
-            replied_at: new Date().toISOString() 
-        })
+        .update({ reply_content: replyText, replied_at: new Date().toISOString() })
         .eq('id', msgId);
 
     if(!error){
         showToast('Reply sent successfully!');
-        loadSupportMessages(); // Refresh inbox kuonyesha jibu
+        loadSupportMessages(); 
     } else {
         showToast('Failed to reply: ' + error.message, 'error');
     }
@@ -146,7 +138,6 @@ async function deletePost(id){
     }
 }
 
-/* POST CREATION LOGIC */
 function initNewPost(){ 
     editingPostId=null; 
     document.getElementById('post-screen-title').innerText='New Update'; 
@@ -160,19 +151,28 @@ function initNewPost(){
 
 function triggerUpload(type){ 
     const input=document.getElementById('file-input'); 
-    input.accept = type==='image'? 'image/*':'.pdf,.doc,.docx'; 
+    // Allow Images, PDFs, and Videos
+    input.accept = type==='image' ? 'image/*,video/*' : '.pdf,.doc,.docx'; 
     input.click(); 
 }
 
 function handleFileSelect(input){ 
     if(!input.files || input.files.length===0) return; 
     const files = Array.from(input.files); 
-    activeFiles = files.map(file=>({ 
-        fileObject: file, 
-        type: file.type.includes('image')?'image':'pdf', 
-        name: file.name,
-        previewUrl: URL.createObjectURL(file) 
-    })); 
+    
+    activeFiles = files.map(file => {
+        // DETECT FILE TYPE CORRECTLY
+        let type = 'pdf';
+        if(file.type.startsWith('image/')) type = 'image';
+        else if(file.type.startsWith('video/')) type = 'video';
+        
+        return { 
+            fileObject: file, 
+            type: type, 
+            name: file.name,
+            previewUrl: URL.createObjectURL(file) 
+        };
+    }); 
     renderMediaPreviews(); 
 }
 
@@ -194,15 +194,23 @@ function renderMediaPreviews(){
     filePreview.classList.remove('hidden'); 
     
     activeFiles.forEach(f=>{ 
-        if(f.type==='image'){ 
+        if(f.type === 'image'){ 
             const div=document.createElement('div'); 
             div.className='rounded overflow-hidden'; 
             div.innerHTML = `<img src="${f.previewUrl}" class="w-full aspect-portrait object-cover">`; 
             mediaList.appendChild(div);
+        } else if(f.type === 'video') {
+            const div=document.createElement('div'); 
+            div.className='rounded overflow-hidden relative bg-black'; 
+            div.innerHTML = `
+                <video src="${f.previewUrl}" class="w-full aspect-portrait object-cover opacity-80"></video>
+                <div class="absolute inset-0 flex items-center justify-center text-white"><i class="ph-fill ph-play-circle text-3xl"></i></div>
+            `; 
+            mediaList.appendChild(div);
         } else { 
             const row=document.createElement('div'); 
             row.className='flex items-center gap-2'; 
-            row.innerHTML = `<i class="ph-fill ph-file-pdf text-red-500 text-xl"></i><div><div class="text-sm font-bold">${f.name}</div></div>`; 
+            row.innerHTML = `<i class="ph-fill ph-file-pdf text-red-500 text-xl"></i><div><div class="text-sm font-bold truncate w-48">${f.name}</div></div>`; 
             fileList.appendChild(row);
         } 
     }); 
@@ -225,7 +233,6 @@ async function handlePublishPost(){
 
     toggleBtnLoading('btn-publish-post', true);
 
-    // 1. Upload Files to Supabase Storage
     let uploadedMedia = [];
     if(activeFiles.length > 0) {
         for(let f of activeFiles) {
@@ -243,7 +250,6 @@ async function handlePublishPost(){
         }
     }
 
-    // 2. Insert Post to DB
     const { error } = await sb.from('posts').insert([{
         creator_id: currentUser.id,
         source_name: currentUser.name,
