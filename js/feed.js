@@ -1,4 +1,4 @@
-/* FEED LOGIC (REAL SUPABASE DATA + REPLIES) */
+/* FEED LOGIC (VIDEO & DOC FIXES) */
 let posts = [];
 let currentImageIndex = {};
 let currentPostIdForComments = null;
@@ -7,16 +7,11 @@ async function renderFeed(filter='all'){
     const container=document.getElementById('feed-list'); 
     container.innerHTML='<div class="p-8 text-center"><i class="ph ph-spinner animate-spin text-2xl"></i></div>';
     
-    // Fetch Posts from Supabase
     let query = sb.from('posts').select(`*, creator:profiles(name, admin_type, role, avatar_url)`).order('created_at', { ascending: false });
-    
     if(filter !== 'all') query = query.eq('category', filter);
 
     const { data, error } = await query;
-    if(error) {
-        console.log(error); 
-        return showToast('Error loading feed', 'error');
-    }
+    if(error) return showToast('Error loading feed', 'error');
     
     posts = data;
     container.innerHTML = '';
@@ -31,7 +26,6 @@ async function renderFeed(filter='all'){
 
     if(visiblePosts.length === 0) {
         container.innerHTML = '<div class="p-8 text-center text-gray-400">No updates yet.</div>';
-        // Hata kama hakuna posts, check replies
         if(currentUser) checkMyReplies();
         return;
     }
@@ -55,23 +49,56 @@ async function renderFeed(filter='all'){
         let avatarHTML=`<div class="w-10 h-10 rounded-lg bg-gray-900 text-white flex items-center justify-center font-bold text-lg">${(post.source_name||'?').charAt(0)}</div>`; 
         if(post.creator?.avatar_url) avatarHTML=`<img src="${post.creator.avatar_url}" class="w-10 h-10 rounded-lg object-cover bg-gray-100">`;
         
+        // MEDIA LOGIC (VIDEO & DOCS FIX)
         let mediaHTML=''; 
         let mediaUrls = post.media_urls || [];
+        
         if(mediaUrls.length > 0){ 
             initCarouselForPost(post.id, mediaUrls.length);
-            if(mediaUrls.length===1){ 
-                const m = mediaUrls[0]; 
-                if(m.type==='image') mediaHTML = `<div class="mt-3 rounded-lg overflow-hidden border border-gray-100 bg-gray-50"><img src="${m.url}" class="w-full aspect-portrait" loading="lazy"></div>`; 
-                else mediaHTML = `<div class="mt-3 p-3 bg-gray-50 border border-gray-100 rounded-lg flex items-center gap-3"><i class="ph-fill ph-file-pdf text-red-500 text-xl"></i><div><div class="text-sm font-bold">${m.name||'Attached Document'}</div><div class="text-xs text-gray-500">Tap to view</div></div></div>`; 
-            } else { 
-                const idx = currentImageIndex[post.id]||0; 
-                const m = mediaUrls[idx]; 
-                mediaHTML = `<div class="mt-3 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 carousel-wrap">
-                    <img src="${m.url}" class="w-full aspect-portrait" loading="lazy">
+            
+            // Check if multiple images/videos
+            if(mediaUrls.length > 1) {
+                 const idx = currentImageIndex[post.id]||0; 
+                 const m = mediaUrls[idx]; 
+                 
+                 // Render Single Item in Carousel
+                 let contentInner = '';
+                 if(m.type === 'video') {
+                     contentInner = `<video src="${m.url}" class="w-full aspect-portrait bg-black" controls></video>`;
+                 } else if(m.type === 'image') {
+                     contentInner = `<img src="${m.url}" class="w-full aspect-portrait object-cover" loading="lazy">`;
+                 } else {
+                     // In carousel we skip docs usually, but safe fallback
+                     contentInner = `<div class="bg-gray-100 h-full flex items-center justify-center">Document</div>`;
+                 }
+
+                 mediaHTML = `<div class="mt-3 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 carousel-wrap">
+                    ${contentInner}
                     <div class="carousel-arrow carousel-left" onclick="showPrevImage(${post.id})">&#8249;</div>
                     <div class="carousel-arrow carousel-right" onclick="showNextImage(${post.id})">&#8250;</div>
                     <div class="carousel-indicator">${idx+1}/${mediaUrls.length}</div>
                 </div>`; 
+
+            } else {
+                // Single Item
+                const m = mediaUrls[0];
+                if(m.type === 'video') {
+                    mediaHTML = `<div class="mt-3 rounded-lg overflow-hidden border border-gray-100 bg-black"><video src="${m.url}" class="w-full aspect-portrait" controls></video></div>`;
+                } else if(m.type === 'image') {
+                    mediaHTML = `<div class="mt-3 rounded-lg overflow-hidden border border-gray-100 bg-gray-50"><img src="${m.url}" class="w-full aspect-portrait" loading="lazy"></div>`;
+                } else {
+                    // DOCUMENT FIX: USE <a> TAG
+                    mediaHTML = `
+                    <a href="${m.url}" target="_blank" class="no-underline block mt-3">
+                        <div class="p-3 bg-gray-50 border border-gray-100 rounded-lg flex items-center gap-3 hover:bg-gray-100 transition-colors">
+                            <i class="ph-fill ph-file-pdf text-red-500 text-xl"></i>
+                            <div>
+                                <div class="text-sm font-bold text-gray-900">${m.name||'Attached Document'}</div>
+                                <div class="text-xs text-gray-500">Tap to download/view</div>
+                            </div>
+                        </div>
+                    </a>`;
+                }
             }
         }
 
@@ -105,29 +132,20 @@ async function renderFeed(filter='all'){
         container.insertAdjacentHTML('beforeend', html);
     });
 
-    // Check replies after loading feed
-    if(currentUser){
-        checkMyReplies();
-    }
+    if(currentUser) checkMyReplies();
 }
 
-// NEW FUNCTION: CHECK REPLIES
 async function checkMyReplies(){
     const dot = document.getElementById('bell-dot');
-    
-    // Vuta meseji zangu ambazo zina reply
     const { data: replies } = await sb
         .from('messages')
         .select('*')
         .eq('sender_id', currentUser.id)
-        .not('reply_content', 'is', null) // Zile zenye jibu tu
+        .not('reply_content', 'is', null) 
         .order('replied_at', {ascending: false});
 
     if(replies && replies.length > 0){
-        // Onyesha Red Dot
         if(dot) dot.style.display = 'block';
-        
-        // Hifadhi kwenye memory ili akibonyeza Bell tuonyeshe
         window.mySupportReplies = replies;
     } else {
         if(dot) dot.style.display = 'none';
@@ -141,7 +159,6 @@ function filterFeed(category, btn){
     renderFeed(category); 
 }
 
-/* CAROUSEL LOGIC */
 function initCarouselForPost(postId, count){ if(typeof currentImageIndex[postId] === 'undefined') currentImageIndex[postId]=0; }
 function showPrevImage(postId){ 
     const post = posts.find(p=>p.id===postId); 
@@ -195,7 +212,6 @@ async function openComments(postId){
         `; 
         list.appendChild(div); 
     }); 
-    
     list.scrollTop = list.scrollHeight; 
 }
 
@@ -205,14 +221,12 @@ async function postComment(){
     const input=document.getElementById('comment-input'); 
     const text=input.value.trim(); 
     if(!text) return; 
-    
     const { error } = await sb.from('comments').insert([{
         post_id: currentPostIdForComments,
         user_id: currentUser.id,
         user_name: currentUser.name,
         content: text
     }]);
-
     if(!error) {
         input.value=''; 
         openComments(currentPostIdForComments); 
@@ -231,21 +245,17 @@ function submitReport(){
     closeReport(); 
 }
 
-/* DYNAMIC SUPPORT MODAL (Wired with Supabase) */
 async function openSupportModal(){ 
     const modal = document.getElementById('modal-support');
     const select = document.getElementById('support-dept');
     const msgBox = document.getElementById('support-msg');
     
-    // Reset fields
     msgBox.value = '';
     select.innerHTML = '<option value="" disabled selected>Loading offices...</option>';
     
     modal.classList.add('show'); 
 
-    // Fetch verified Admins from the Student's University ONLY
     if(currentUser && currentUser.uni){
-        // Select profiles where role=admin AND verified=true AND uni=currentUser.uni
         const { data: offices, error } = await sb
             .from('profiles')
             .select('name, admin_type')
