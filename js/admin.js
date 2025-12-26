@@ -276,3 +276,4 @@ async function handlePublishPost(){
     
     toggleBtnLoading('btn-publish-post', false);
 }
+
