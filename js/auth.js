@@ -1,4 +1,4 @@
-/* AUTHENTICATION LOGIC */
+/* AUTHENTICATION LOGIC (UPDATED WITH READ-ONLY PROFILE) */
 
 // Check Session on Load
 async function checkSession() {
@@ -104,10 +104,26 @@ async function handleStudentLogin(e){
     showToast('Welcome back, ' + currentUser.name.split(' ')[0]);
 }
 
+// *** HII NDIO ILIYOBADILISHWA ***
+// Sasa inapeleka kwenye Read-Only View
 function openProfileMenu(){ 
     if(!currentUser) return showToast('Please login first', 'error'); 
-    if(currentUser.role==='student') openStudentSignup(); 
-    else if(currentUser.role==='admin') navTo('view-admin-dash'); 
+    
+    if(currentUser.role === 'student') {
+        // Jaza data kwenye Read-Only Profile Card
+        document.getElementById('read-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+        document.getElementById('read-name').textContent = currentUser.name;
+        document.getElementById('read-uni').textContent = currentUser.uni;
+        document.getElementById('read-course').textContent = currentUser.course;
+        document.getElementById('read-year').textContent = currentUser.year;
+        document.getElementById('read-email').textContent = currentUser.email;
+
+        // Peleka user huko
+        navTo('view-profile-read'); 
+    } 
+    else if(currentUser.role === 'admin') {
+        navTo('view-admin-dash'); 
+    } 
 }
 
 /* ADMIN ACTIONS */
