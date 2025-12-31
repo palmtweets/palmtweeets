@@ -5,6 +5,33 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <title>PalmTweets | Campus Utility</title>
   
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Corporation",
+      "name": "Keystone Venture Studios",
+      "url": "https://palmtweets.com",
+      "logo": "icons/icon-512.png",
+      "founder": {
+        "@type": "Person",
+        "name": "Ernest Michael Makungu",
+        "jobTitle": "President & Group CEO",
+        "url": "https://palmtweets.com",
+        "sameAs": [
+          "https://www.linkedin.com/in/ernest-michael",
+          "https://www.instagram.com/ernestmichael__"
+        ]
+      },
+      "owns": {
+        "@type": "SoftwareApplication",
+        "name": "PalmTweets",
+        "operatingSystem": "Web, Android, iOS",
+        "applicationCategory": "EducationalApplication",
+        "description": "The verified digital infrastructure for university notices and official campus updates."
+      }
+    }
+  </script>
+
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ffffff">
   <link rel="apple-touch-icon" href="icons/apple-icon.png">
@@ -29,7 +56,7 @@
     </div>
   </div>
 
-  <div id="view-intro" class="screen bg-white p-8 justify-end pb-12">
+  <div id="view-intro" class="screen bg-white p-8 justify-end pb-4">
     <div class="app-container">
       <div class="fade-in mb-8">
         <div class="brand-logo justify-start text-3xl mb-6">
@@ -43,6 +70,11 @@
         <button onclick="navTo('view-student-auth')" class="btn-black flex justify-between items-center"><span>Student Access</span> <i class="ph-bold ph-arrow-right"></i></button>
         <button onclick="navTo('view-admin-intro')" class="btn-outline text-sm">Ministry / Office Access</button>
       </div>
+      
+      <footer style="margin-top: 3rem; text-align: center; color: #9ca3af; font-family: 'Inter', sans-serif;">
+        <div style="font-size: 0.7rem; font-weight: 500;">&copy; 2025 PalmTweets</div>
+        <div style="font-size: 0.65rem; letter-spacing: 0.2em; margin-top: 0.5rem; text-transform: uppercase; color: #6b7280;">a KEYSTONE VENTURE STUDIOS product</div>
+      </footer>
     </div>
   </div>
 
@@ -73,10 +105,8 @@
   <div id="view-signup" class="screen bg-white p-6">
     <div class="app-container fade-in">
       <div class="h-12 mb-4"><button onclick="navTo('view-intro')"><i class="ph ph-arrow-left text-xl"></i></button></div>
-      <h2 class="text-3xl font-bold mb-2 tracking-tight">My Profile</h2>
-      <p class="text-sm text-gray-500 mb-6 leading-relaxed">
-        Strictly for verified students.
-      </p>
+      <h2 class="text-3xl font-bold mb-2 tracking-tight">Create Profile</h2>
+      <p class="text-sm text-gray-500 mb-6 leading-relaxed">Strictly for verified students.</p>
       <form id="student-form" onsubmit="finishStudentSignup(event)" class="space-y-5">
         <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Email</label><input id="input-email" type="email" class="input-clean" placeholder="you@example.com" required /></div>
         <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Password</label><input id="input-password" type="password" class="input-clean" placeholder="Choose a secure password" required /></div>
@@ -84,13 +114,42 @@
         <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Full Name</label><input id="input-name" class="input-clean" placeholder="Your Official Name" required /></div>
         <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Year of Study</label><select id="input-year" class="input-clean bg-white appearance-none" required><option value="" disabled selected>Select Year</option><option value="1">Year 1</option><option value="2">Year 2</option><option value="3">Year 3</option><option value="4+">Year 4+</option><option value="Grad">Graduate</option></select></div>
         <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Course</label><input id="input-course" class="input-clean" placeholder="e.g. Architecture" required /></div>
-        
-        <div class="flex gap-2">
-          <button id="student-submit-btn" type="submit" class="btn-black mt-4">Enter Platform <i class="ph-bold ph-caret-right ml-2"></i></button>
-          <button id="student-logout-btn" type="button" class="btn-outline mt-4 hidden-by-default" onclick="openModalConfirm('Are you sure you want to logout?', handleLogout)">Logout</button>
-        </div>
+        <button id="student-submit-btn" type="submit" class="btn-black mt-4 w-full">Enter Platform <i class="ph-bold ph-caret-right ml-2"></i></button>
       </form>
     </div>
+  </div>
+
+  <div id="view-profile-read" class="screen bg-white p-6">
+      <div class="app-container fade-in">
+          <div class="h-12 mb-4"><button onclick="navTo('view-home')"><i class="ph ph-arrow-left text-xl"></i> Back to Feed</button></div>
+          
+          <div class="text-center mb-8">
+              <div class="w-24 h-24 bg-black text-white rounded-full flex items-center justify-center font-bold text-4xl mx-auto mb-4" id="read-avatar">?</div>
+              <h2 class="text-2xl font-bold tracking-tight" id="read-name">Student Name</h2>
+              <div class="text-green-600 text-xs font-bold uppercase tracking-widest mt-1"><i class="ph-fill ph-seal-check"></i> Verified Student</div>
+          </div>
+
+          <div class="bg-gray-50 border border-gray-100 rounded-2xl p-6 space-y-6">
+              <div>
+                  <div class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">University</div>
+                  <div class="font-medium text-gray-900" id="read-uni">-</div>
+              </div>
+              <div>
+                  <div class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Course</div>
+                  <div class="font-medium text-gray-900" id="read-course">-</div>
+              </div>
+              <div>
+                  <div class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Year of Study</div>
+                  <div class="font-medium text-gray-900" id="read-year">-</div>
+              </div>
+              <div>
+                  <div class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Email</div>
+                  <div class="font-medium text-gray-900" id="read-email">-</div>
+              </div>
+          </div>
+
+          <button class="btn-outline w-full mt-8 text-red-500 border-red-200 hover:bg-red-50" onclick="openModalConfirm('Log out from this device?', handleLogout)">Log Out</button>
+      </div>
   </div>
 
   <div id="view-home" class="screen">
@@ -231,7 +290,7 @@
       <textarea id="post-content" class="input-clean w-full h-32 resize-none" placeholder="Type official notice here..."></textarea>
       <div id="media-preview" class="hidden mt-3 border border-gray-100 rounded-xl p-2"><div id="media-list" class="grid grid-cols-2 gap-2 mb-2"></div></div>
       <div id="file-preview" class="hidden mt-3 bg-gray-50 border border-gray-200 p-3 rounded-xl flex flex-col gap-2"><div id="file-list" class="flex flex-col gap-1"></div></div>
-      <div class="mt-4 pb-4 border-b border-gray-100"><input id="file-input" type="file" class="hidden" onchange="handleFileSelect(this)" multiple /><div class="flex gap-3"><button class="upload-btn flex-1 text-sm" onclick="triggerUpload('image')"><i class="ph-fill ph-image text-lg"></i> Add Photos</button><button class="upload-btn flex-1 text-sm" onclick="triggerUpload('pdf')"><i class="ph-fill ph-file-pdf text-lg"></i> Attach PDF</button></div></div>
+      <div class="mt-4 pb-4 border-b border-gray-100"><input id="file-input" type="file" class="hidden" onchange="handleFileSelect(this)" multiple /><div class="flex gap-3"><button class="upload-btn flex-1 text-sm" onclick="triggerUpload('image')"><i class="ph-fill ph-image text-lg"></i> Add Media</button><button class="upload-btn flex-1 text-sm" onclick="triggerUpload('pdf')"><i class="ph-fill ph-file-pdf text-lg"></i> Attach PDF</button></div></div>
       <div class="mt-4 space-y-4">
         <div>
             <label class="text-xs font-bold uppercase text-gray-400 block mb-1">Category</label>
