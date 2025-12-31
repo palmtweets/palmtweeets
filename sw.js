@@ -1,5 +1,5 @@
 // BADILISHA HII KILA UKIONGEZA FEATURES MPYA
-const CACHE_NAME = 'v-final-video-KEYSTONE'; 
+const CACHE_NAME = 'v-final-video-KEYS'; 
 
 const ASSETS = [
   './',
@@ -53,6 +53,7 @@ self.addEventListener('fetch', (e) => {
     })
   );
 });
+
 
 
 
