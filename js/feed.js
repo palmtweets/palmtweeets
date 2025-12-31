@@ -1,4 +1,4 @@
-/* FEED LOGIC (VIDEO & DOC FIXES) */
+/* FEED LOGIC (SMART FUZZY MATCHING, VIDEO & DOCS) */
 let posts = [];
 let currentImageIndex = {};
 let currentPostIdForComments = null;
@@ -7,6 +7,7 @@ async function renderFeed(filter='all'){
     const container=document.getElementById('feed-list'); 
     container.innerHTML='<div class="p-8 text-center"><i class="ph ph-spinner animate-spin text-2xl"></i></div>';
     
+    // Fetch Posts from Supabase
     let query = sb.from('posts').select(`*, creator:profiles(name, admin_type, role, avatar_url)`).order('created_at', { ascending: false });
     if(filter !== 'all') query = query.eq('category', filter);
 
@@ -18,10 +19,28 @@ async function renderFeed(filter='all'){
 
     const visiblePosts = posts.filter(post => {
         if(currentUser && currentUser.role === 'student') {
+            
+            // 1. Chuja Chuo
             if(post.uni_target && post.uni_target !== 'All' && post.uni_target !== currentUser.uni) return false;
-            if(post.course_target && post.course_target.trim() !== '' && !currentUser.course.toLowerCase().includes(post.course_target.toLowerCase())) return true; 
+            
+            // 2. Chuja Mwaka
+            if(post.year_target && post.year_target !== 'All' && post.year_target !== currentUser.year) return false;
+
+            // 3. Chuja Course (KEYSTONE FUZZY ALGORITHM)
+            if(post.course_target && post.course_target.trim() !== '') {
+                const cleanStudent = cleanString(currentUser.course);
+                const cleanTarget = cleanString(post.course_target);
+
+                // A. Check containment
+                const containsMatch = cleanStudent.includes(cleanTarget) || cleanTarget.includes(cleanStudent);
+                
+                // B. Check Similarity (Typo tolerance)
+                const similarity = getSimilarity(cleanStudent, cleanTarget);
+                
+                if(!containsMatch && similarity < 0.6) return false; 
+            }
         }
-        return true;
+        return true; 
     });
 
     if(visiblePosts.length === 0) {
@@ -49,28 +68,19 @@ async function renderFeed(filter='all'){
         let avatarHTML=`<div class="w-10 h-10 rounded-lg bg-gray-900 text-white flex items-center justify-center font-bold text-lg">${(post.source_name||'?').charAt(0)}</div>`; 
         if(post.creator?.avatar_url) avatarHTML=`<img src="${post.creator.avatar_url}" class="w-10 h-10 rounded-lg object-cover bg-gray-100">`;
         
-        // MEDIA LOGIC (VIDEO & DOCS FIX)
+        // MEDIA LOGIC (VIDEO/IMAGE/DOCS)
         let mediaHTML=''; 
         let mediaUrls = post.media_urls || [];
         
         if(mediaUrls.length > 0){ 
             initCarouselForPost(post.id, mediaUrls.length);
-            
-            // Check if multiple images/videos
             if(mediaUrls.length > 1) {
                  const idx = currentImageIndex[post.id]||0; 
                  const m = mediaUrls[idx]; 
-                 
-                 // Render Single Item in Carousel
                  let contentInner = '';
-                 if(m.type === 'video') {
-                     contentInner = `<video src="${m.url}" class="w-full aspect-portrait bg-black" controls></video>`;
-                 } else if(m.type === 'image') {
-                     contentInner = `<img src="${m.url}" class="w-full aspect-portrait object-cover" loading="lazy">`;
-                 } else {
-                     // In carousel we skip docs usually, but safe fallback
-                     contentInner = `<div class="bg-gray-100 h-full flex items-center justify-center">Document</div>`;
-                 }
+                 if(m.type === 'video') contentInner = `<video src="${m.url}" class="w-full aspect-portrait bg-black" controls></video>`;
+                 else if(m.type === 'image') contentInner = `<img src="${m.url}" class="w-full aspect-portrait object-cover" loading="lazy">`;
+                 else contentInner = `<div class="bg-gray-100 h-full flex items-center justify-center">Document</div>`;
 
                  mediaHTML = `<div class="mt-3 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 carousel-wrap">
                     ${contentInner}
@@ -78,27 +88,11 @@ async function renderFeed(filter='all'){
                     <div class="carousel-arrow carousel-right" onclick="showNextImage(${post.id})">&#8250;</div>
                     <div class="carousel-indicator">${idx+1}/${mediaUrls.length}</div>
                 </div>`; 
-
             } else {
-                // Single Item
                 const m = mediaUrls[0];
-                if(m.type === 'video') {
-                    mediaHTML = `<div class="mt-3 rounded-lg overflow-hidden border border-gray-100 bg-black"><video src="${m.url}" class="w-full aspect-portrait" controls></video></div>`;
-                } else if(m.type === 'image') {
-                    mediaHTML = `<div class="mt-3 rounded-lg overflow-hidden border border-gray-100 bg-gray-50"><img src="${m.url}" class="w-full aspect-portrait" loading="lazy"></div>`;
-                } else {
-                    // DOCUMENT FIX: USE <a> TAG
-                    mediaHTML = `
-                    <a href="${m.url}" target="_blank" class="no-underline block mt-3">
-                        <div class="p-3 bg-gray-50 border border-gray-100 rounded-lg flex items-center gap-3 hover:bg-gray-100 transition-colors">
-                            <i class="ph-fill ph-file-pdf text-red-500 text-xl"></i>
-                            <div>
-                                <div class="text-sm font-bold text-gray-900">${m.name||'Attached Document'}</div>
-                                <div class="text-xs text-gray-500">Tap to download/view</div>
-                            </div>
-                        </div>
-                    </a>`;
-                }
+                if(m.type === 'video') mediaHTML = `<div class="mt-3 rounded-lg overflow-hidden border border-gray-100 bg-black"><video src="${m.url}" class="w-full aspect-portrait" controls></video></div>`;
+                else if(m.type === 'image') mediaHTML = `<div class="mt-3 rounded-lg overflow-hidden border border-gray-100 bg-gray-50"><img src="${m.url}" class="w-full aspect-portrait" loading="lazy"></div>`;
+                else mediaHTML = `<a href="${m.url}" target="_blank" class="no-underline block mt-3"><div class="p-3 bg-gray-50 border border-gray-100 rounded-lg flex items-center gap-3 hover:bg-gray-100 transition-colors"><i class="ph-fill ph-file-pdf text-red-500 text-xl"></i><div><div class="text-sm font-bold text-gray-900">${m.name||'Attached Document'}</div><div class="text-xs text-gray-500">Tap to download/view</div></div></div></a>`;
             }
         }
 
@@ -135,172 +129,59 @@ async function renderFeed(filter='all'){
     if(currentUser) checkMyReplies();
 }
 
-async function checkMyReplies(){
-    const dot = document.getElementById('bell-dot');
-    const { data: replies } = await sb
-        .from('messages')
-        .select('*')
-        .eq('sender_id', currentUser.id)
-        .not('reply_content', 'is', null) 
-        .order('replied_at', {ascending: false});
+/* --- HELPER FUNCTIONS FOR FUZZY LOGIC --- */
+function cleanString(str) {
+    if(!str) return "";
+    return str.toLowerCase()
+        .replace(/bachelor|of|science|arts|degree|diploma|in|engineering/g, '') 
+        .replace(/[^a-z0-9]/g, '') 
+        .trim();
+}
 
-    if(replies && replies.length > 0){
-        if(dot) dot.style.display = 'block';
-        window.mySupportReplies = replies;
-    } else {
-        if(dot) dot.style.display = 'none';
-        window.mySupportReplies = [];
+function getSimilarity(s1, s2) {
+    let longer = s1;
+    let shorter = s2;
+    if (s1.length < s2.length) { longer = s2; shorter = s1; }
+    let longerLength = longer.length;
+    if (longerLength === 0) return 1.0;
+    return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+}
+
+function editDistance(s1, s2) {
+    s1 = s1.toLowerCase(); s2 = s2.toLowerCase();
+    let costs = new Array();
+    for (let i = 0; i <= s1.length; i++) {
+        let lastValue = i;
+        for (let j = 0; j <= s2.length; j++) {
+            if (i == 0) costs[j] = j;
+            else {
+                if (j > 0) {
+                    let newValue = costs[j - 1];
+                    if (s1.charAt(i - 1) != s2.charAt(j - 1)) newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                    costs[j - 1] = lastValue;
+                    lastValue = newValue;
+                }
+            }
+        }
+        if (i > 0) costs[s2.length] = lastValue;
     }
+    return costs[s2.length];
 }
+/* --- END FUZZY LOGIC --- */
 
-function filterFeed(category, btn){ 
-    document.querySelectorAll('#view-home .chip').forEach(c=>c.classList.remove('active')); 
-    btn.classList.add('active'); 
-    renderFeed(category); 
-}
-
+/* OTHER FUNCTIONS */
+async function checkMyReplies(){ const dot = document.getElementById('bell-dot'); const { data: replies } = await sb.from('messages').select('*').eq('sender_id', currentUser.id).not('reply_content', 'is', null).order('replied_at', {ascending: false}); if(replies && replies.length > 0){ if(dot) dot.style.display = 'block'; window.mySupportReplies = replies; } else { if(dot) dot.style.display = 'none'; window.mySupportReplies = []; } }
+function filterFeed(category, btn){ document.querySelectorAll('#view-home .chip').forEach(c=>c.classList.remove('active')); btn.classList.add('active'); renderFeed(category); }
 function initCarouselForPost(postId, count){ if(typeof currentImageIndex[postId] === 'undefined') currentImageIndex[postId]=0; }
-function showPrevImage(postId){ 
-    const post = posts.find(p=>p.id===postId); 
-    if(!post || !post.media_urls) return; 
-    currentImageIndex[postId] = (currentImageIndex[postId] - 1 + post.media_urls.length) % post.media_urls.length; 
-    renderFeed(); 
-}
-function showNextImage(postId){ 
-    const post = posts.find(p=>p.id===postId); 
-    if(!post || !post.media_urls) return; 
-    currentImageIndex[postId] = (currentImageIndex[postId] + 1) % post.media_urls.length; 
-    renderFeed(); 
-}
-
-async function handleLike(btn, postId){ 
-    const icon=btn.querySelector('i'); 
-    const countSpan=btn.querySelector('span'); 
-    let current = parseInt(countSpan.innerText.replace('k','000')) || 0;
-    
-    if(icon.classList.contains('ph-heart')){ 
-        icon.classList.remove('ph-heart'); icon.classList.add('ph-fill','ph-heart','text-red-500'); btn.classList.add('text-red-500'); 
-        countSpan.innerText = formatCount(current + 1);
-        await sb.rpc('increment_likes', { row_id: postId }); 
-    } else { 
-        icon.classList.remove('ph-fill','ph-heart','text-red-500'); icon.classList.add('ph-heart'); btn.classList.remove('text-red-500'); 
-        countSpan.innerText = formatCount(current - 1);
-        await sb.rpc('decrement_likes', { row_id: postId }); 
-    } 
-}
-
-async function openComments(postId){ 
-    currentPostIdForComments=postId; 
-    const list=document.getElementById('comments-list'); 
-    const countHeader=document.getElementById('comment-header-count'); 
-    list.innerHTML='<div class="text-center p-4"><i class="ph ph-spinner animate-spin"></i></div>';
-    
-    document.getElementById('modal-comments').classList.add('show');
-    
-    const { data: comments } = await sb.from('comments').select('*').eq('post_id', postId).order('created_at', {ascending: true});
-    
-    countHeader.innerText = `(${comments.length})`; 
-    list.innerHTML='';
-    
-    if(comments.length===0) list.innerHTML='<div class="text-center text-gray-400 text-sm mt-10">No comments yet.</div>'; 
-    else comments.forEach((c)=>{ 
-        const div=document.createElement('div'); div.className='flex gap-3 text-sm'; 
-        const userInitial = c.user_name ? c.user_name.charAt(0) : '?'; 
-        div.innerHTML = `
-          <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-xs">${userInitial}</div>
-          <div><div class="font-bold text-xs text-gray-900">${c.user_name}</div><div class="text-gray-700 mt-0.5">${c.content}</div></div>
-        `; 
-        list.appendChild(div); 
-    }); 
-    list.scrollTop = list.scrollHeight; 
-}
-
+function showPrevImage(postId){ const post = posts.find(p=>p.id===postId); if(!post || !post.media_urls) return; currentImageIndex[postId] = (currentImageIndex[postId] - 1 + post.media_urls.length) % post.media_urls.length; renderFeed(); }
+function showNextImage(postId){ const post = posts.find(p=>p.id===postId); if(!post || !post.media_urls) return; currentImageIndex[postId] = (currentImageIndex[postId] + 1) % post.media_urls.length; renderFeed(); }
+async function handleLike(btn, postId){ const icon=btn.querySelector('i'); const countSpan=btn.querySelector('span'); let current = parseInt(countSpan.innerText.replace('k','000')) || 0; if(icon.classList.contains('ph-heart')){ icon.classList.remove('ph-heart'); icon.classList.add('ph-fill','ph-heart','text-red-500'); btn.classList.add('text-red-500'); countSpan.innerText = formatCount(current + 1); await sb.rpc('increment_likes', { row_id: postId }); } else { icon.classList.remove('ph-fill','ph-heart','text-red-500'); icon.classList.add('ph-heart'); btn.classList.remove('text-red-500'); countSpan.innerText = formatCount(current - 1); await sb.rpc('decrement_likes', { row_id: postId }); } }
+async function openComments(postId){ currentPostIdForComments=postId; const list=document.getElementById('comments-list'); const countHeader=document.getElementById('comment-header-count'); list.innerHTML='<div class="text-center p-4"><i class="ph ph-spinner animate-spin"></i></div>'; document.getElementById('modal-comments').classList.add('show'); const { data: comments } = await sb.from('comments').select('*').eq('post_id', postId).order('created_at', {ascending: true}); countHeader.innerText = `(${comments.length})`; list.innerHTML=''; if(comments.length===0) list.innerHTML='<div class="text-center text-gray-400 text-sm mt-10">No comments yet.</div>'; else comments.forEach((c)=>{ const div=document.createElement('div'); div.className='flex gap-3 text-sm'; const userInitial = c.user_name ? c.user_name.charAt(0) : '?'; div.innerHTML = ` <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-xs">${userInitial}</div> <div><div class="font-bold text-xs text-gray-900">${c.user_name}</div><div class="text-gray-700 mt-0.5">${c.content}</div></div> `; list.appendChild(div); }); list.scrollTop = list.scrollHeight; }
 function closeComments(){ document.getElementById('modal-comments').classList.remove('show'); }
-
-async function postComment(){ 
-    const input=document.getElementById('comment-input'); 
-    const text=input.value.trim(); 
-    if(!text) return; 
-    const { error } = await sb.from('comments').insert([{
-        post_id: currentPostIdForComments,
-        user_id: currentUser.id,
-        user_name: currentUser.name,
-        content: text
-    }]);
-    if(!error) {
-        input.value=''; 
-        openComments(currentPostIdForComments); 
-        showToast('Comment Added'); 
-    } else {
-        showToast('Failed to comment', 'error');
-    }
-}
-
+async function postComment(){ const input=document.getElementById('comment-input'); const text=input.value.trim(); if(!text) return; const { error } = await sb.from('comments').insert([{ post_id: currentPostIdForComments, user_id: currentUser.id, user_name: currentUser.name, content: text }]); if(!error) { input.value=''; openComments(currentPostIdForComments); showToast('Comment Added'); } else { showToast('Failed to comment', 'error'); } }
 function openReport(postId){ document.getElementById('modal-report').classList.add('show'); document.getElementById('report-reason').value=''; }
 function closeReport(){ document.getElementById('modal-report').classList.remove('show'); }
-function submitReport(){ 
-    const reason=document.getElementById('report-reason').value; 
-    if(!reason) return showToast('Please provide a reason', 'error'); 
-    showToast('Report submitted'); 
-    closeReport(); 
-}
-
-async function openSupportModal(){ 
-    const modal = document.getElementById('modal-support');
-    const select = document.getElementById('support-dept');
-    const msgBox = document.getElementById('support-msg');
-    
-    msgBox.value = '';
-    select.innerHTML = '<option value="" disabled selected>Loading offices...</option>';
-    
-    modal.classList.add('show'); 
-
-    if(currentUser && currentUser.uni){
-        const { data: offices, error } = await sb
-            .from('profiles')
-            .select('name, admin_type')
-            .eq('role', 'admin')
-            .eq('verified', true)
-            .eq('uni', currentUser.uni);
-
-        if(error || !offices || offices.length === 0){
-            select.innerHTML = '<option value="" disabled selected>No official offices found for your campus.</option>';
-        } else {
-            select.innerHTML = '<option value="" disabled selected>Select Department</option>';
-            offices.forEach(office => {
-                const opt = document.createElement('option');
-                opt.value = office.name; 
-                opt.textContent = office.name;
-                select.appendChild(opt);
-            });
-        }
-    } else {
-        select.innerHTML = '<option value="" disabled selected>Error: Campus not identified.</option>';
-    }
-}
-
+function submitReport(){ const reason=document.getElementById('report-reason').value; if(!reason) return showToast('Please provide a reason', 'error'); showToast('Report submitted'); closeReport(); }
+async function openSupportModal(){ const modal = document.getElementById('modal-support'); const select = document.getElementById('support-dept'); const msgBox = document.getElementById('support-msg'); msgBox.value = ''; select.innerHTML = '<option value="" disabled selected>Loading offices...</option>'; modal.classList.add('show'); if(currentUser && currentUser.uni){ const { data: offices, error } = await sb.from('profiles').select('name, admin_type').eq('role', 'admin').eq('verified', true).eq('uni', currentUser.uni); if(error || !offices || offices.length === 0){ select.innerHTML = '<option value="" disabled selected>No official offices found for your campus.</option>'; } else { select.innerHTML = '<option value="" disabled selected>Select Department</option>'; offices.forEach(office => { const opt = document.createElement('option'); opt.value = office.name; opt.textContent = office.name; select.appendChild(opt); }); } } else { select.innerHTML = '<option value="" disabled selected>Error: Campus not identified.</option>'; } }
 function closeSupportModal(){ document.getElementById('modal-support').classList.remove('show'); }
-
-async function sendSupport(){ 
-    const msg = document.getElementById('support-msg').value.trim(); 
-    const dept = document.getElementById('support-dept').value;
-    
-    if(!dept) return showToast('Please select a department', 'error');
-    if(!msg) return showToast('Please describe your issue', 'error'); 
-    
-    toggleBtnLoading('btn-support-send', true);
-    
-    const { error } = await sb.from('messages').insert([{
-        sender_id: currentUser.id,
-        department: dept,
-        content: msg
-    }]);
-
-    if(!error){
-        showToast('Message sent successfully', 'success'); 
-        closeSupportModal(); 
-    } else {
-        showToast('Failed to send: ' + error.message, 'error');
-    }
-    toggleBtnLoading('btn-support-send', false);
-}
+async function sendSupport(){ const msg = document.getElementById('support-msg').value.trim(); const dept = document.getElementById('support-dept').value; if(!dept) return showToast('Please select a department', 'error'); if(!msg) return showToast('Please describe your issue', 'error'); toggleBtnLoading('btn-support-send', true); const { error } = await sb.from('messages').insert([{ sender_id: currentUser.id, department: dept, content: msg }]); if(!error){ showToast('Message sent successfully', 'success'); closeSupportModal(); } else { showToast('Failed to send: ' + error.message, 'error'); } toggleBtnLoading('btn-support-send', false); }
