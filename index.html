@@ -3,15 +3,29 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>PalmTweets | Campus Utility</title>
   
+  <title>PalmTweets | The Digital Campus Infrastructure</title>
+  <meta name="description" content="PalmTweets is the verified digital infrastructure for university notices and official campus updates. A Keystone Venture Studios product.">
+  <meta name="keywords" content="PalmTweets, Campus App, University Notices, Keystone Venture Studios, Ernest Michael Makungu, EdTech Tanzania">
+  <meta name="author" content="Keystone Venture Studios">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://palmtweets.com/">
+  <meta property="og:title" content="PalmTweets | Digital Campus Utility">
+  <meta property="og:description" content="Strictly for verified students & officials. The official digital infrastructure for campus updates. Owned by Keystone Venture Studios.">
+  <meta property="og:image" content="https://palmtweets.com/icons/icon-512.png"> <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://palmtweets.com/">
+  <meta property="twitter:title" content="PalmTweets | Digital Campus Utility">
+  <meta property="twitter:description" content="The verified digital infrastructure for university notices. A Keystone Venture Studios Asset.">
+  <meta property="twitter:image" content="https://palmtweets.com/icons/icon-512.png">
+
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "Corporation",
       "name": "Keystone Venture Studios",
       "url": "https://palmtweets.com",
-      "logo": "icons/icon-512.png",
+      "logo": "https://palmtweets.com/icons/icon-512.png",
       "founder": {
         "@type": "Person",
         "name": "Ernest Michael Makungu",
@@ -35,6 +49,8 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ffffff">
   <link rel="apple-touch-icon" href="icons/apple-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -106,7 +122,9 @@
     <div class="app-container fade-in">
       <div class="h-12 mb-4"><button onclick="navTo('view-intro')"><i class="ph ph-arrow-left text-xl"></i></button></div>
       <h2 class="text-3xl font-bold mb-2 tracking-tight">Create Profile</h2>
-      <p class="text-sm text-gray-500 mb-6 leading-relaxed">Strictly for verified students.</p>
+      <p class="text-sm text-gray-500 mb-6 leading-relaxed">
+        Strictly for verified students.
+      </p>
       <form id="student-form" onsubmit="finishStudentSignup(event)" class="space-y-5">
         <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Email</label><input id="input-email" type="email" class="input-clean" placeholder="you@example.com" required /></div>
         <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Password</label><input id="input-password" type="password" class="input-clean" placeholder="Choose a secure password" required /></div>
@@ -114,6 +132,7 @@
         <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Full Name</label><input id="input-name" class="input-clean" placeholder="Your Official Name" required /></div>
         <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Year of Study</label><select id="input-year" class="input-clean bg-white appearance-none" required><option value="" disabled selected>Select Year</option><option value="1">Year 1</option><option value="2">Year 2</option><option value="3">Year 3</option><option value="4+">Year 4+</option><option value="Grad">Graduate</option></select></div>
         <div><label class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 block">Course</label><input id="input-course" class="input-clean" placeholder="e.g. Architecture" required /></div>
+        
         <button id="student-submit-btn" type="submit" class="btn-black mt-4 w-full">Enter Platform <i class="ph-bold ph-caret-right ml-2"></i></button>
       </form>
     </div>
@@ -350,4 +369,3 @@
   <script src="js/app.js"></script>
 </body>
 </html>
-
