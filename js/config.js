@@ -16,8 +16,9 @@ const universities = [
     "SUA", 
     "DIT", 
     "St. Joseph", 
-    "Tumaini University"
+    "Mbeya University of Science and Technology (MUST)"
 ];
 
 // Global State
 let currentUser = null;
+
